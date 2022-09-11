@@ -1,7 +1,7 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const ESLintPlugin = require('eslint-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const ESLintPlugin = require('eslint-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 
 module.exports = {
   mode: 'production',
@@ -19,10 +19,13 @@ module.exports = {
     }),
     new ESLintPlugin({
       extensions: ['.tsx', '.ts', '.js'],
-      exclude: 'node_modules'
-   }),
-   new CleanWebpackPlugin(),
+      exclude: 'node_modules',
+    }),
+    new CleanWebpackPlugin(),
   ],
+  resolve: {
+    extensions: ['.ts', '.js', '...'],
+  },
   optimization: {
     splitChunks: {
       chunks: 'all',
@@ -49,10 +52,10 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /_notes/],
         use: {
           loader: 'ts-loader',
-        }
+        },
       },
       {
         test: /\.(sass|scss)$/i,
