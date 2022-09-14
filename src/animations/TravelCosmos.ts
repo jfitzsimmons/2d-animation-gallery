@@ -63,7 +63,6 @@ class Burst {
   huesSats: [number, number][]
   x: number
   y: number
-
   size: number
   hsIndex: number
   graphics: PIXI.Graphics
@@ -143,11 +142,11 @@ class Burst {
 
   update() {
     if (
-      this.graphics.x > this.bounds.right ||
-      this.graphics.x < this.bounds.left ||
-      this.graphics.y < this.bounds.top ||
-      this.graphics.y > this.bounds.bottom ||
-      this.graphics.scale.x > 4
+      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
+      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
+      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
+      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
+      this.graphics.scale.x > 3
     ) {
       const burst = new Burst(this.bounds)
       TravelCosmos.bursts.splice(TravelCosmos.bursts.indexOf(this), 1)
@@ -161,6 +160,8 @@ class Burst {
     this.graphics.position.y += this.speedY
     this.graphics.scale.x += 0.001
     this.graphics.scale.y += 0.001
+    if (this.graphics.scale.x > 2)
+      this.graphics.alpha = 3 - this.graphics.scale.x
   }
 }
 
@@ -218,11 +219,11 @@ class Speck {
 
   update() {
     if (
-      this.graphics.x > this.bounds.right ||
-      this.graphics.x < this.bounds.left ||
-      this.graphics.y < this.bounds.top ||
-      this.graphics.y > this.bounds.bottom ||
-      this.graphics.scale.x > 4
+      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
+      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
+      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
+      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
+      this.graphics.scale.x > 3
     ) {
       const speck = new Speck(this.bounds)
       TravelCosmos.specks.splice(TravelCosmos.specks.indexOf(this), 1)
@@ -238,6 +239,9 @@ class Speck {
 
     this.graphics.scale.x += 0.002
     this.graphics.scale.y += 0.002
+
+    if (this.graphics.scale.x > 2)
+      this.graphics.alpha = 3 - this.graphics.scale.x
   }
 }
 
