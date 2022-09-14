@@ -1,4 +1,4 @@
-import XorCircles from './animations/XorCircles'
+import TravelCosmos from './animations/TravelCosmos'
 import * as PIXI from 'pixi.js'
 import '../assets/style.scss'
 import { debounce } from './utils'
@@ -21,7 +21,7 @@ export default class AnimationStage {
    */
   domElement: HTMLElement
   renderer: PIXI.AbstractRenderer
-  currentAnimation: XorCircles
+  currentAnimation: TravelCosmos
 
   constructor(domElementSelector: string) {
     this.domElement = document.getElementById(domElementSelector)
@@ -33,7 +33,7 @@ export default class AnimationStage {
       bottom: 0,
     }
 
-    this.currentAnimation = new XorCircles()
+    this.currentAnimation = new TravelCosmos()
   }
 
   ready() {
