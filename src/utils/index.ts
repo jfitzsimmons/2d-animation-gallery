@@ -25,3 +25,19 @@ export function debounce<Params extends unknown[]>(
 }
 
 export const rndmRng = (h: number, l: number) => Math.random() * (h - l) + l
+
+export const shuffle = (array: [number, number][]): [number, number][] => {
+  let currentIndex: number = array.length
+  let randomIndex
+
+  while (0 !== currentIndex) {
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex--
+    ;[array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ]
+  }
+
+  return array
+}
