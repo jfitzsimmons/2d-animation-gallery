@@ -72,8 +72,12 @@ class Debris {
 
   constructor(bounds: Bounds) {
     this.bounds = bounds
-    this.x = Math.round(rndmRng(bounds.right * 0.75, bounds.right * 0.25))
-    this.y = Math.round(rndmRng(bounds.bottom * 0.75, bounds.bottom * 0.25))
+    this.x = Math.round(
+      rndmRng(this.bounds.right * 0.75, this.bounds.right * 0.25)
+    )
+    this.y = Math.round(
+      rndmRng(this.bounds.bottom * 0.75, this.bounds.bottom * 0.25)
+    )
     this.graphics = new PIXI.Graphics()
     this.graphics.x = this.x
     this.graphics.y = this.y
@@ -169,8 +173,6 @@ class Burst extends Debris {
   update() {
     if (Debris.prototype.isOutOfBounds.call(this)) {
       const burst = new Burst(this.bounds)
-      TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
-      AnimationStage.stage.removeChild(this.graphics)
       const child = burst.draw()
       TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
@@ -293,7 +295,6 @@ export default class TravelCosmos {
       window.clearTimeout(to)
     }
     AnimationStage.stage.removeChildren()
-    TravelCosmos.debris.length = 0
     TravelCosmos.debris.length = 0
     this.init(AnimationStage.bounds)
   }
