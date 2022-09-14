@@ -59,12 +59,12 @@ function drawDashLine(
   }
 }*/
 
-class Burst {
-  huesSats: [number, number][]
+class Debris {
+  update() {
+    throw new Error('Method not implemented.')
+  }
   x: number
   y: number
-  size: number
-  hsIndex: number
   graphics: PIXI.Graphics
   bounds: Bounds
   speedX: number
@@ -72,14 +72,40 @@ class Burst {
 
   constructor(bounds: Bounds) {
     this.bounds = bounds
-    this.huesSats = shuffle(hueSat)
-    this.size = Math.round(rndmRng(bounds.bottom * 0.4, bounds.bottom * 0.2))
     this.x = Math.round(rndmRng(bounds.right * 0.75, bounds.right * 0.25))
     this.y = Math.round(rndmRng(bounds.bottom * 0.75, bounds.bottom * 0.25))
-    this.hsIndex = 0
     this.graphics = new PIXI.Graphics()
     this.graphics.x = this.x
     this.graphics.y = this.y
+  }
+
+  isOutOfBounds() {
+    if (
+      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
+      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
+      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
+      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
+      this.graphics.scale.x > 3
+    ) {
+      TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
+      AnimationStage.stage.removeChild(this.graphics)
+      return true
+    }
+  }
+}
+
+class Burst extends Debris {
+  huesSats: [number, number][]
+  size: number
+  hsIndex: number
+
+  constructor(bounds: Bounds) {
+    super(bounds)
+    this.huesSats = shuffle(hueSat)
+    this.size = Math.round(
+      rndmRng(this.bounds.bottom * 0.4, this.bounds.bottom * 0.2)
+    )
+    this.hsIndex = 0
     this.speedX = Math.round(this.graphics.x - this.bounds.right / 2) / 600
     this.speedY = Math.round(this.graphics.y - this.bounds.bottom / 2) / 600
   }
@@ -117,7 +143,7 @@ class Burst {
 
       /** testJpf 
        * 
-       * you don't need this here but you will need it again for circles and lines (NOT SPECKS)!!!
+       * you don't need this here but you will need it again for circles and lines (NOT debris)!!!
        
       drawDashLine(
         this.graphics,
@@ -141,18 +167,12 @@ class Burst {
   }
 
   update() {
-    if (
-      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
-      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
-      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
-      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
-      this.graphics.scale.x > 3
-    ) {
+    if (Debris.prototype.isOutOfBounds.call(this)) {
       const burst = new Burst(this.bounds)
-      TravelCosmos.bursts.splice(TravelCosmos.bursts.indexOf(this), 1)
+      TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
       AnimationStage.stage.removeChild(this.graphics)
       const child = burst.draw()
-      TravelCosmos.bursts.push(burst)
+      TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
     }
 
@@ -165,32 +185,20 @@ class Burst {
   }
 }
 
-class Speck {
-  x: number
-  y: number
-  speedX: number
-  speedY: number
+class Speck extends Debris {
   width: number
   height: number
   hueSat: [number, number]
   strokeColor: string
   lineWidth: number
-  graphics: PIXI.Graphics
-  bounds: Bounds
 
   constructor(bounds: Bounds) {
+    super(bounds)
     this.bounds = bounds
     this.width = rndmRng(5, 1)
     this.height = rndmRng(5, 1)
-    this.graphics = new PIXI.Graphics()
-    this.graphics.x = Math.round(
-      rndmRng(this.bounds.right * 0.75, this.bounds.right * 0.25)
-    )
-    this.graphics.y = Math.round(
-      rndmRng(this.bounds.bottom * 0.75, this.bounds.bottom * 0.25)
-    )
-    this.x = this.graphics.x
-    this.y = this.graphics.y
+    this.graphics.x = this.x
+    this.graphics.y = this.y
     this.speedX = Math.round(this.graphics.x - this.bounds.right / 2) / 600
     this.speedY = Math.round(this.graphics.y - this.bounds.bottom / 2) / 600
     this.hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
@@ -218,36 +226,25 @@ class Speck {
   }
 
   update() {
-    if (
-      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
-      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
-      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
-      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
-      this.graphics.scale.x > 3
-    ) {
+    if (Debris.prototype.isOutOfBounds.call(this)) {
       const speck = new Speck(this.bounds)
-      TravelCosmos.specks.splice(TravelCosmos.specks.indexOf(this), 1)
-      AnimationStage.stage.removeChild(this.graphics)
-
       const child = speck.draw()
-      TravelCosmos.specks.push(speck)
+      TravelCosmos.debris.push(speck)
       AnimationStage.stage.addChild(child)
     }
 
     this.graphics.position.x += this.speedX
     this.graphics.position.y += this.speedY
-
-    this.graphics.scale.x += 0.002
-    this.graphics.scale.y += 0.002
-
+    this.graphics.scale.x += 0.001
+    this.graphics.scale.y += 0.001
     if (this.graphics.scale.x > 2)
       this.graphics.alpha = 3 - this.graphics.scale.x
   }
 }
 
 export default class TravelCosmos {
-  static specks: Speck[] = []
-  static bursts: Burst[] = []
+  static debris: Debris[] = []
+  //static debris: Burst[] = []
   timeouts: ReturnType<typeof setTimeout>[]
   static strokeColors = ['506EE5', '68B2F8', '7037CD']
   static fillColors = [209, 291, 263]
@@ -271,27 +268,22 @@ export default class TravelCosmos {
     for (let i = speckTotal; i--; ) {
       const speck = new Speck(bounds)
       const child = speck.draw()
-      TravelCosmos.specks.push(speck)
+      TravelCosmos.debris.push(speck)
       AnimationStage.stage.addChild(child)
     }
 
     for (let i = burstTotal; i--; ) {
       const burst = new Burst(bounds)
       const child = burst.draw()
-      TravelCosmos.bursts.push(burst)
+      TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
     }
   }
 
   update() {
-    if (TravelCosmos.specks.length > 0) {
-      for (let i = TravelCosmos.specks.length; i--; ) {
-        TravelCosmos.specks[i].update()
-      }
-    }
-    if (TravelCosmos.bursts.length > 0) {
-      for (let i = TravelCosmos.bursts.length; i--; ) {
-        TravelCosmos.bursts[i].update()
+    if (TravelCosmos.debris.length > 0) {
+      for (let i = TravelCosmos.debris.length; i--; ) {
+        TravelCosmos.debris[i].update()
       }
     }
   }
@@ -301,8 +293,8 @@ export default class TravelCosmos {
       window.clearTimeout(to)
     }
     AnimationStage.stage.removeChildren()
-    TravelCosmos.specks.length = 0
-    TravelCosmos.bursts.length = 0
+    TravelCosmos.debris.length = 0
+    TravelCosmos.debris.length = 0
     this.init(AnimationStage.bounds)
   }
 }
