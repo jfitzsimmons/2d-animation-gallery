@@ -8,7 +8,7 @@ export function hslToHex(h: number, s: number, l: number) {
       .toString(16)
       .padStart(2, '0')
   }
-  return `0x${f(0)}${f(8)}${f(4)}`
+  return parseInt(`0x${f(0)}${f(8)}${f(4)}`)
 }
 
 export function debounce<Params extends unknown[]>(

@@ -3,6 +3,7 @@ import { Bounds } from '../types'
 import { hslToHex, rndmRng, shuffle } from '../utils'
 import * as PIXI from 'pixi.js'
 
+//Move to Travel Cosmos class testjpf!!!
 const hueSat: [number, number][] = [
   [360, 0],
   [204, 100],
@@ -99,86 +100,65 @@ class Debris {
 }
 
 class Burst extends Debris {
-  huesSats: [number, number][]
-  size: number
-  hsIndex: number
-  distanceToCenter: number
+  scaleMod: number
+  alphaStart: number
 
   constructor(bounds: Bounds) {
     super(bounds)
-    this.huesSats = shuffle(hueSat)
-    this.size = Math.round(
-      rndmRng(this.bounds.bottom * 0.4, this.bounds.bottom * 0.2)
-    )
-    this.hsIndex = 0
-    //testjpf speed ight be backwards.  slower the further away not faster
-    /**
-     slower further away (smaller) faster as gets close (bigger)
-     */
 
-    // (this.bounds.right / 2) - ( Math.round(this.graphics.x - this.bounds.right / 2) / 600)
-    const center = { x: this.bounds.right / 4, y: this.bounds.bottom / 4 }
-    const fromCenterX = this.graphics.x / 2 - center.x
-    const fromCenterY = this.graphics.y / 2 - center.y
+    const center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
+    const fromCenterX = this.graphics.x - center.x
+    const fromCenterY = this.graphics.y - center.y
 
-    console.log(
-      `alpha test: ${
-        1 -
-        (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
-      }`
-    )
     this.graphics.alpha =
       1 -
       (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
-
-    this.speedX = (center.x - Math.abs(fromCenterX)) / 2000
+    this.alphaStart = this.graphics.alpha
+    this.speedX = (center.x - Math.abs(fromCenterX)) / 9000
     if (fromCenterX < 0) this.speedX *= -1
-
-    this.speedY = (center.y - Math.abs(fromCenterY)) / 2000
+    this.speedY = (center.y - Math.abs(fromCenterY)) / 9000
     if (fromCenterY < 0) this.speedY *= -1
-
-    // this.speedX = Math.round(this.graphics.x / 2 - this.bounds.right / 4) / 500
-    // this.speedY = Math.round(this.graphics.y / 2 - this.bounds.bottom / 4) / 500
-    this.distanceToCenter =
+    this.scaleMod =
       ((this.bounds.right + this.bounds.bottom) / 4 -
         Math.sqrt(
           Math.pow(this.x - this.bounds.right / 2, 2) +
             Math.pow(this.y - this.bounds.bottom / 2, 2)
         )) *
-      0.000002
+      0.000004 // closer debris grows larger than further
   }
 
   draw() {
-    // const alpha = 1 - (0.5 - (Math.abs(this.speedX) + Math.abs(this.speedY)))
-    console.log(`this.speedX: ${this.speedX} | this.speedY: ${this.speedY}`)
-    for (let i = 0; i < this.size; i++) {
-      if (i < this.size / 40) {
-        this.hsIndex = 0
-      } else if (i < this.size / 13) {
-        this.hsIndex = 1
-      } else if (i < this.size / 6) {
-        this.hsIndex = 2
+    let hsIndex = 0
+    const size = Math.round(
+      rndmRng(this.bounds.bottom * 0.4, this.bounds.bottom * 0.2)
+    )
+    const huesSats = shuffle(hueSat) //needs multiple colors
+    for (let i = 0; i < size; i++) {
+      if (i < size / 40) {
+        hsIndex = 0
+      } else if (i < size / 13) {
+        hsIndex = 1
+      } else if (i < size / 6) {
+        hsIndex = 2
       } else {
-        this.hsIndex = 3
+        hsIndex = 3
       }
-      const hue: number = this.huesSats[this.hsIndex][0]
-      const sat: number = this.huesSats[this.hsIndex][1]
+
+      const hue: number = huesSats[hsIndex][0]
+      const sat: number = huesSats[hsIndex][1]
       const strokeColor = hslToHex(hue, sat, Math.round(rndmRng(99, 60)))
 
       this.graphics.lineStyle(
         rndmRng(5, 1),
-        parseInt(`${strokeColor}`),
+        strokeColor, // testjpf return int from hslToHex
         rndmRng(1, 0.5)
       )
 
       const modX = rndmRng(2.5, 1.5)
       const modY = rndmRng(2.5, 1.5)
-      const dotX = Math.round(
-        rndmRng(this.size / 2 / modX, this.size / -2 / modX)
-      )
-      const dotY = Math.round(
-        rndmRng(this.size / 2 / modY, this.size / -2 / modY)
-      )
+      const dotX = Math.round(rndmRng(size / 2 / modX, size / -2 / modX))
+      const dotY = Math.round(rndmRng(size / 2 / modY, size / -2 / modY))
+
       this.graphics.moveTo(dotX, dotY)
 
       /** testJpf 
@@ -198,9 +178,9 @@ class Burst extends Debris {
         rndmRng(dotY - 1, dotY - 5)
       )
     }
+
     this.graphics.cacheAsBitmap = true
-    // this.graphics.alpha = 3
-    this.graphics.scale.set(0.05, 0.05)
+    this.graphics.scale.set(0.01, 0.01)
     this.graphics.pivot.x = Math.round(this.graphics.width / 2)
     this.graphics.pivot.y = Math.round(this.graphics.height / 2)
 
@@ -208,67 +188,55 @@ class Burst extends Debris {
   }
 
   update() {
+    //testjpf could be moved to parent class
+    //debris types may update too similarly (boring?)
+    //would have to send debris type: (sting?)
+    // send speed mods ex: 1.0007
     if (Debris.prototype.isOutOfBounds.call(this)) {
       const burst = new Burst(this.bounds)
       const child = burst.draw()
       TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
     }
-    //testjpf distance to center logic will work
-    //if you teake into account ?left sie is negative,
-    //////right positive and ultiply by different deciaml at end
-    /**
-     * testjpf
-     *
-     * add speed plus a modifuer that is
-     * faster when bigger, slower when smaller
-     */
+
     this.graphics.position.x += this.speedX
     this.graphics.position.y += this.speedY
-    //testjpf multply by speeds?
-    this.graphics.scale.x += this.distanceToCenter
-    this.graphics.scale.y += this.distanceToCenter
+    this.speedX = this.speedX * 1.0007
+    this.speedX += this.speedX < 0 ? -0.0001 : 0.0001
+    this.speedY = this.speedY * 1.0007
+    this.speedY += this.speedY < 0 ? -0.0001 : 0.0001
+    this.graphics.scale.x += this.scaleMod
+    this.graphics.scale.y += this.scaleMod
     if (this.graphics.scale.x > 2)
-      this.graphics.alpha = 3 - this.graphics.scale.x
+      this.graphics.alpha = 3 - (1 - this.alphaStart) - this.graphics.scale.x
   }
 }
 
 class Speck extends Debris {
-  width: number
-  height: number
-  hueSat: [number, number]
-  strokeColor: string
-  lineWidth: number
-
   constructor(bounds: Bounds) {
     super(bounds)
     this.bounds = bounds
-    this.width = rndmRng(5, 1)
-    this.height = rndmRng(5, 1)
-    this.graphics.x = this.x
-    this.graphics.y = this.y
     this.speedX = Math.round(this.graphics.x - this.bounds.right / 2) / 600
     this.speedY = Math.round(this.graphics.y - this.bounds.bottom / 2) / 600
-    this.hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
-    this.strokeColor = hslToHex(
-      this.hueSat[0],
-      this.hueSat[1],
-      Math.round(rndmRng(99, 60))
-    )
-    this.lineWidth = rndmRng(5, 1)
   }
 
   draw() {
+    const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
+    const strokeColor = hslToHex(
+      _hueSat[0],
+      _hueSat[1],
+      Math.round(rndmRng(99, 60))
+    )
     this.graphics.lineStyle(
       Math.round(rndmRng(5, 1)),
-      parseInt(`${this.strokeColor}`),
+      strokeColor,
       rndmRng(1, 0.5)
     )
     this.graphics.scale.set(0.1, 0.1)
-    this.graphics.lineTo(Math.round(this.width), Math.round(this.height))
+    this.graphics.lineTo(Math.round(rndmRng(5, 1)), Math.round(rndmRng(5, 1)))
     this.graphics.cacheAsBitmap = true
-    this.graphics.pivot.x = Math.round(this.width / 2)
-    this.graphics.pivot.y = Math.round(this.height / 2)
+    this.graphics.pivot.x = Math.round(this.graphics.width / 2)
+    this.graphics.pivot.y = Math.round(this.graphics.height / 2)
 
     return this.graphics
   }
@@ -293,7 +261,6 @@ class Speck extends Debris {
 
 export default class TravelCosmos {
   static debris: Debris[] = []
-  //static debris: Burst[] = []
   timeouts: ReturnType<typeof setTimeout>[]
   static strokeColors = ['506EE5', '68B2F8', '7037CD']
   static fillColors = [209, 291, 263]

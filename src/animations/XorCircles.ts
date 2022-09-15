@@ -40,12 +40,10 @@ class Circle {
     if (this.radius < this.innerCrcmf && typeof this.radius !== 'undefined') {
       this.radius += Math.round(this.innerCrcmf / this.grooves)
       this.graphics.beginFill(
-        parseInt(
-          hslToHex(
-            Math.round((this.color += 0.3)),
-            Math.round(100 - rndmRng(50, 0)),
-            Math.round((this.light += 0.1))
-          )
+        hslToHex(
+          Math.round((this.color += 0.3)),
+          Math.round(100 - rndmRng(50, 0)),
+          Math.round((this.light += 0.1))
         )
       )
 
