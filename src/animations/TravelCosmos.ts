@@ -102,6 +102,7 @@ class Burst extends Debris {
   huesSats: [number, number][]
   size: number
   hsIndex: number
+  distanceToCenter: number
 
   constructor(bounds: Bounds) {
     super(bounds)
@@ -110,11 +111,46 @@ class Burst extends Debris {
       rndmRng(this.bounds.bottom * 0.4, this.bounds.bottom * 0.2)
     )
     this.hsIndex = 0
-    this.speedX = Math.round(this.graphics.x - this.bounds.right / 2) / 600
-    this.speedY = Math.round(this.graphics.y - this.bounds.bottom / 2) / 600
+    //testjpf speed ight be backwards.  slower the further away not faster
+    /**
+     slower further away (smaller) faster as gets close (bigger)
+     */
+
+    // (this.bounds.right / 2) - ( Math.round(this.graphics.x - this.bounds.right / 2) / 600)
+    const center = { x: this.bounds.right / 4, y: this.bounds.bottom / 4 }
+    const fromCenterX = this.graphics.x / 2 - center.x
+    const fromCenterY = this.graphics.y / 2 - center.y
+
+    console.log(
+      `alpha test: ${
+        1 -
+        (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
+      }`
+    )
+    this.graphics.alpha =
+      1 -
+      (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
+
+    this.speedX = (center.x - Math.abs(fromCenterX)) / 2000
+    if (fromCenterX < 0) this.speedX *= -1
+
+    this.speedY = (center.y - Math.abs(fromCenterY)) / 2000
+    if (fromCenterY < 0) this.speedY *= -1
+
+    // this.speedX = Math.round(this.graphics.x / 2 - this.bounds.right / 4) / 500
+    // this.speedY = Math.round(this.graphics.y / 2 - this.bounds.bottom / 4) / 500
+    this.distanceToCenter =
+      ((this.bounds.right + this.bounds.bottom) / 4 -
+        Math.sqrt(
+          Math.pow(this.x - this.bounds.right / 2, 2) +
+            Math.pow(this.y - this.bounds.bottom / 2, 2)
+        )) *
+      0.000002
   }
 
   draw() {
+    // const alpha = 1 - (0.5 - (Math.abs(this.speedX) + Math.abs(this.speedY)))
+    console.log(`this.speedX: ${this.speedX} | this.speedY: ${this.speedY}`)
     for (let i = 0; i < this.size; i++) {
       if (i < this.size / 40) {
         this.hsIndex = 0
@@ -163,6 +199,7 @@ class Burst extends Debris {
       )
     }
     this.graphics.cacheAsBitmap = true
+    // this.graphics.alpha = 3
     this.graphics.scale.set(0.05, 0.05)
     this.graphics.pivot.x = Math.round(this.graphics.width / 2)
     this.graphics.pivot.y = Math.round(this.graphics.height / 2)
@@ -177,11 +214,20 @@ class Burst extends Debris {
       TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
     }
-
+    //testjpf distance to center logic will work
+    //if you teake into account ?left sie is negative,
+    //////right positive and ultiply by different deciaml at end
+    /**
+     * testjpf
+     *
+     * add speed plus a modifuer that is
+     * faster when bigger, slower when smaller
+     */
     this.graphics.position.x += this.speedX
     this.graphics.position.y += this.speedY
-    this.graphics.scale.x += 0.001
-    this.graphics.scale.y += 0.001
+    //testjpf multply by speeds?
+    this.graphics.scale.x += this.distanceToCenter
+    this.graphics.scale.y += this.distanceToCenter
     if (this.graphics.scale.x > 2)
       this.graphics.alpha = 3 - this.graphics.scale.x
   }
@@ -237,6 +283,7 @@ class Speck extends Debris {
 
     this.graphics.position.x += this.speedX
     this.graphics.position.y += this.speedY
+    //testjpf scale should grow faster the closer to center
     this.graphics.scale.x += 0.001
     this.graphics.scale.y += 0.001
     if (this.graphics.scale.x > 2)
