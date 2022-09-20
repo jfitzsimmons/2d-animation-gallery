@@ -4,7 +4,11 @@ import '../assets/style.scss'
 import { debounce } from './utils'
 import { Bounds } from './types'
 
-export default class AnimationStage {
+export class AnimationStage {
+  static renderer: PIXI.AbstractRenderer
+  static getRenderer() {
+    return this.renderer
+  }
   static bounds: Bounds
   static getBounds() {
     return this.bounds
@@ -13,6 +17,7 @@ export default class AnimationStage {
   static getStage() {
     return this.stage
   }
+
   /**
    * testjpf
    *
@@ -60,6 +65,7 @@ export default class AnimationStage {
 
     try {
       this.renderer = PIXI.autoDetectRenderer(options)
+      AnimationStage.renderer = this.renderer
     } catch (err) {
       alert(err.message)
       return
@@ -101,7 +107,5 @@ export default class AnimationStage {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const app = new AnimationStage('cvs0-container')
-  app.ready()
-})
+export const app = new AnimationStage('cvs0-container')
+app.ready()

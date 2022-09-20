@@ -1,4 +1,4 @@
-import AnimationStage from '..'
+import { AnimationStage } from '..'
 import { Bounds } from '../types'
 import { hslToHex, rndmRng } from '../utils'
 import * as PIXI from 'pixi.js'

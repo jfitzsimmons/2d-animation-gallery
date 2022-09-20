@@ -1,16 +1,32 @@
-import AnimationStage from '..'
-import { Bounds } from '../types'
-import { hslToHex, rndmRng, shuffle } from '../utils'
+import { AnimationStage, app } from '..'
+import { Bounds, GradientOptions } from '../types'
+import { hslToHex, rndmRng, shuffle, distanceFromCenter, lerp } from '../utils'
 import * as PIXI from 'pixi.js'
 
-//Move to Travel Cosmos class testjpf!!!
-const hueSat: [number, number][] = [
-  [360, 0],
-  [204, 100],
-  [260, 31],
-  [340, 89],
-  [179, 79],
-]
+function gradient(opts: GradientOptions) {
+  const _opts = opts
+  const c = document.createElement('canvas') as HTMLCanvasElement
+  c.width = _opts.outR * 2
+  c.height = _opts.outR * 2
+  const ctx = c.getContext('2d')
+  const grd = ctx.createRadialGradient(
+    _opts.outR,
+    _opts.outR,
+    _opts.inR,
+    _opts.outR,
+    _opts.outR,
+    _opts.outR
+  )
+  grd.addColorStop(0, _opts.from)
+  grd.addColorStop(1, _opts.to)
+  ctx.fillStyle = grd
+  ctx.fillRect(0, 0, _opts.outR * 2, _opts.outR * 2)
+
+  return PIXI.Texture.from(c, {
+    width: _opts.outR * 2,
+    height: _opts.outR * 2,
+  })
+}
 
 /** 
 function drawDashLine(
@@ -61,15 +77,21 @@ function drawDashLine(
 }*/
 
 class Debris {
-  update() {
-    throw new Error('Method not implemented.')
-  }
   x: number
   y: number
   graphics: PIXI.Graphics
   bounds: Bounds
-  speedX: number
-  speedY: number
+  speedMod: number
+  scaleMod: number
+  scaleModRatio: number
+  scaleModIncrease: number
+  scaleLimit: number
+  alphaStart: number
+  endPoint: { x: number; y: number }
+  time: number
+  duration: number
+  sprite: PIXI.Sprite
+  center: { x: number; y: number }
 
   constructor(bounds: Bounds) {
     this.bounds = bounds
@@ -80,59 +102,140 @@ class Debris {
       rndmRng(this.bounds.bottom * 0.75, this.bounds.bottom * 0.25)
     )
     this.graphics = new PIXI.Graphics()
-    this.graphics.x = this.x
-    this.graphics.y = this.y
+    this.center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
+
+    const slope = (this.y - this.center.y) / (this.x - this.center.x)
+    const angle = Math.atan(slope)
+    const fromCenterX = this.x - this.center.x
+    const fromCenterY = this.y - this.center.y
+    const maxDistance =
+      this.bounds.right > this.bounds.bottom ? this.center.x : this.center.y
+    const distanceX = this.x < this.center.x ? maxDistance * -1 : maxDistance
+    const distanceY = this.y < this.center.y ? maxDistance * -1 : maxDistance
+    const flip =
+      (distanceY < 0 && distanceX > 0) || (distanceY > 0 && distanceX < 0)
+        ? -1
+        : 1
+
+    this.endPoint = {
+      x: this.x + distanceX * Math.cos(angle),
+      y: this.y + distanceY * Math.sin(angle) * flip,
+    }
+    this.graphics.alpha =
+      1 -
+      (Math.abs(fromCenterX) + Math.abs(fromCenterY)) /
+        (this.center.x + this.center.y)
+    this.alphaStart = this.graphics.alpha
+    this.time = 1
+    this.duration =
+      100 +
+      Math.pow(
+        maxDistance -
+          distanceFromCenter(this.x, this.y, this.center.x, this.center.y),
+        1.5
+      )
   }
 
-  isOutOfBounds() {
+  update(opts: Debris) {
+    const _opts = opts
+    if (this.isOutOfBounds(_opts)) {
+      const debris = _opts.newInstance()
+      const child = debris.draw()
+      TravelCosmos.debris.push(debris)
+      if (child instanceof PIXI.Graphics || child instanceof PIXI.Sprite)
+        AnimationStage.stage.addChild(child)
+    }
+
+    this.time += 1
+    this.sprite.scale.set(
+      _opts.sprite.scale.x +
+        _opts.getScaleModifier(
+          _opts.sprite.x,
+          _opts.sprite.y,
+          _opts.sprite.width,
+          _opts.sprite.height,
+          _opts.scaleModRatio,
+          _opts.scaleModIncrease
+        ),
+      _opts.sprite.scale.y +
+        _opts.getScaleModifier(
+          _opts.sprite.x,
+          _opts.sprite.y,
+          _opts.sprite.width,
+          _opts.sprite.height,
+          _opts.scaleModRatio,
+          _opts.scaleModIncrease
+        )
+    )
+    this.sprite.position.set(
+      lerp(_opts.x, _opts.endPoint.x, _opts.time / _opts.duration),
+      lerp(_opts.y, _opts.endPoint.y, _opts.time / _opts.duration)
+    )
+    if (_opts.sprite.scale.x > _opts.scaleLimit) {
+      this.sprite.alpha =
+        _opts.scaleLimit + _opts.alphaStart - _opts.sprite.scale.x
+    }
+    this.duration *= 0.999
+  }
+  draw() {
+    return {}
+  }
+
+  newInstance() {
+    return new Debris(this.bounds)
+  }
+
+  isOutOfBounds(_opts: Debris) {
     if (
-      this.graphics.x - this.graphics.width / 2 > this.bounds.right ||
-      this.graphics.x + this.graphics.width / 2 < this.bounds.left ||
-      this.graphics.y + this.graphics.height / 2 < this.bounds.top ||
-      this.graphics.y - this.graphics.height / 2 > this.bounds.bottom ||
-      this.graphics.scale.x > 3
+      _opts.sprite.x - _opts.sprite.width / 2 > _opts.bounds.right ||
+      _opts.sprite.x + _opts.sprite.width / 2 < _opts.bounds.left ||
+      _opts.sprite.y + _opts.sprite.width / 2 < _opts.bounds.top ||
+      _opts.sprite.y - _opts.sprite.width / 2 > _opts.bounds.bottom ||
+      _opts.sprite.scale.x > _opts.scaleLimit + 1
     ) {
-      TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
-      AnimationStage.stage.removeChild(this.graphics)
+      TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(_opts), 1)
+      AnimationStage.stage.removeChild(_opts.sprite)
       return true
     }
+  }
+
+  getScaleModifier(
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    mod: number,
+    increase: number
+  ) {
+    const scaleModifier =
+      ((this.bounds.right + this.bounds.bottom) * mod -
+        Math.sqrt(
+          Math.pow((x + w / 2 - this.center.x) * (mod * 2), 2) +
+            Math.pow((y + h / 2 - this.center.y) * (mod * 2), 2)
+        )) *
+      increase
+    return scaleModifier
   }
 }
 
 class Burst extends Debris {
-  scaleMod: number
-  alphaStart: number
-
   constructor(bounds: Bounds) {
     super(bounds)
 
-    const center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
-    const fromCenterX = this.graphics.x - center.x
-    const fromCenterY = this.graphics.y - center.y
-
-    this.graphics.alpha =
-      1 -
-      (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
-    this.alphaStart = this.graphics.alpha
-    this.speedX = (center.x - Math.abs(fromCenterX)) / 9000
-    if (fromCenterX < 0) this.speedX *= -1
-    this.speedY = (center.y - Math.abs(fromCenterY)) / 9000
-    if (fromCenterY < 0) this.speedY *= -1
-    this.scaleMod =
-      ((this.bounds.right + this.bounds.bottom) / 4 -
-        Math.sqrt(
-          Math.pow(this.x - this.bounds.right / 2, 2) +
-            Math.pow(this.y - this.bounds.bottom / 2, 2)
-        )) *
-      0.000004 // closer debris grows larger than further
+    this.scaleLimit = 2
+    this.scaleModRatio = 0.00001 + this.duration * 0.000001
+    this.scaleModIncrease = 0.0001
+    this.alphaStart = 1
   }
 
   draw() {
     let hsIndex = 0
+    //TESTJPF have a max size!!!!
+    //TESTJPF Maybe better to hardcode min and max!!!
     const size = Math.round(
-      rndmRng(this.bounds.bottom * 0.4, this.bounds.bottom * 0.2)
+      rndmRng(this.bounds.right * 0.3, this.bounds.right * 0.15)
     )
-    const huesSats = shuffle(hueSat) //needs multiple colors
+    const huesSats = shuffle(TravelCosmos.hueSat)
     for (let i = 0; i < size; i++) {
       if (i < size / 40) {
         hsIndex = 0
@@ -148,11 +251,7 @@ class Burst extends Debris {
       const sat: number = huesSats[hsIndex][1]
       const strokeColor = hslToHex(hue, sat, Math.round(rndmRng(99, 60)))
 
-      this.graphics.lineStyle(
-        rndmRng(5, 1),
-        strokeColor, // testjpf return int from hslToHex
-        rndmRng(1, 0.5)
-      )
+      this.graphics.lineStyle(rndmRng(5, 1), strokeColor, rndmRng(1, 0.5))
 
       const modX = rndmRng(2.5, 1.5)
       const modY = rndmRng(2.5, 1.5)
@@ -180,48 +279,40 @@ class Burst extends Debris {
     }
 
     this.graphics.cacheAsBitmap = true
-    this.graphics.scale.set(0.01, 0.01)
-    this.graphics.pivot.x = Math.round(this.graphics.width / 2)
-    this.graphics.pivot.y = Math.round(this.graphics.height / 2)
 
-    return this.graphics
+    const texture = app.renderer.generateTexture(this.graphics)
+
+    this.sprite = new PIXI.Sprite(texture)
+    this.sprite.position.set(this.x, this.y)
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.scale.set(0.1, 0.1)
+    return this.sprite
   }
 
-  update() {
-    //testjpf could be moved to parent class
-    //debris types may update too similarly (boring?)
-    //would have to send debris type: (sting?)
-    // send speed mods ex: 1.0007
-    if (Debris.prototype.isOutOfBounds.call(this)) {
-      const burst = new Burst(this.bounds)
-      const child = burst.draw()
-      TravelCosmos.debris.push(burst)
-      AnimationStage.stage.addChild(child)
-    }
-
-    this.graphics.position.x += this.speedX
-    this.graphics.position.y += this.speedY
-    this.speedX = this.speedX * 1.0007
-    this.speedX += this.speedX < 0 ? -0.0001 : 0.0001
-    this.speedY = this.speedY * 1.0007
-    this.speedY += this.speedY < 0 ? -0.0001 : 0.0001
-    this.graphics.scale.x += this.scaleMod
-    this.graphics.scale.y += this.scaleMod
-    if (this.graphics.scale.x > 2)
-      this.graphics.alpha = 3 - (1 - this.alphaStart) - this.graphics.scale.x
+  newInstance() {
+    return new Burst(this.bounds)
   }
 }
 
 class Speck extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
-    this.bounds = bounds
-    this.speedX = Math.round(this.graphics.x - this.bounds.right / 2) / 600
-    this.speedY = Math.round(this.graphics.y - this.bounds.bottom / 2) / 600
+
+    this.scaleLimit = 2
+    this.scaleModRatio = this.duration * 0.0000008
+    this.scaleModIncrease = 0.0002
+    this.alphaStart = 1
+  }
+
+  newInstance() {
+    return new Speck(this.bounds)
   }
 
   draw() {
-    const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
+    const _hueSat =
+      TravelCosmos.hueSat[
+        Math.round(rndmRng(TravelCosmos.hueSat.length - 1, 0))
+      ]
     const strokeColor = hslToHex(
       _hueSat[0],
       _hueSat[1],
@@ -232,41 +323,67 @@ class Speck extends Debris {
       strokeColor,
       rndmRng(1, 0.5)
     )
-    this.graphics.scale.set(0.1, 0.1)
     this.graphics.lineTo(Math.round(rndmRng(5, 1)), Math.round(rndmRng(5, 1)))
-    this.graphics.cacheAsBitmap = true
-    this.graphics.pivot.x = Math.round(this.graphics.width / 2)
-    this.graphics.pivot.y = Math.round(this.graphics.height / 2)
 
-    return this.graphics
+    const texture = app.renderer.generateTexture(this.graphics)
+
+    this.sprite = new PIXI.Sprite(texture)
+    this.sprite.position.set(this.x, this.y)
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.scale.set(0.1, 0.1)
+
+    return this.sprite
+  }
+}
+
+class Radial extends Debris {
+  constructor(bounds: Bounds) {
+    super(bounds)
+
+    this.scaleLimit = 3
+    this.scaleModRatio = 0.00003 + this.duration * 0.0000008
+    this.scaleModIncrease = 0.0001
+    this.alphaStart = 1
   }
 
-  update() {
-    if (Debris.prototype.isOutOfBounds.call(this)) {
-      const speck = new Speck(this.bounds)
-      const child = speck.draw()
-      TravelCosmos.debris.push(speck)
-      AnimationStage.stage.addChild(child)
-    }
+  newInstance() {
+    return new Radial(this.bounds)
+  }
 
-    this.graphics.position.x += this.speedX
-    this.graphics.position.y += this.speedY
-    //testjpf scale should grow faster the closer to center
-    this.graphics.scale.x += 0.001
-    this.graphics.scale.y += 0.001
-    if (this.graphics.scale.x > 2)
-      this.graphics.alpha = 3 - this.graphics.scale.x
+  draw() {
+    const outR = rndmRng(this.bounds.bottom * 0.15, this.bounds.bottom * 0.05)
+    const inR = rndmRng(outR * 0.2, outR * 0.01)
+    const gradientOptions: GradientOptions = {
+      outR,
+      inR,
+      from: `rgba(${rndmRng(80, 54)}, ${rndmRng(40, 10)}, ${rndmRng(
+        43,
+        17
+      )}, ${rndmRng(0.5, 0.2)})`,
+      to: `rgba(${rndmRng(80, 54)}, ${rndmRng(40, 10)}, ${rndmRng(43, 17)}, 0)`,
+    }
+    const texture = gradient(gradientOptions)
+
+    this.sprite = new PIXI.Sprite(texture)
+    this.sprite.position.set(this.x, this.y)
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.scale.set(0.06, 0.06)
+
+    return this.sprite
   }
 }
 
 export default class TravelCosmos {
   static debris: Debris[] = []
-  timeouts: ReturnType<typeof setTimeout>[]
   static strokeColors = ['506EE5', '68B2F8', '7037CD']
   static fillColors = [209, 291, 263]
-  constructor() {
-    this.timeouts = []
-  }
+  static hueSat: [number, number][] = [
+    [360, 0],
+    [204, 100],
+    [260, 31],
+    [340, 89],
+    [179, 79],
+  ]
 
   static getStrokeColors() {
     return this.strokeColors[
@@ -281,6 +398,9 @@ export default class TravelCosmos {
     const burstTotal = Math.round((bounds.right * bounds.bottom) / 180000)
 
     const speckTotal = Math.round((bounds.right * bounds.bottom) / 47000)
+
+    const radialTotal = Math.round(rndmRng(7, 3))
+
     for (let i = speckTotal; i--; ) {
       const speck = new Speck(bounds)
       const child = speck.draw()
@@ -294,20 +414,24 @@ export default class TravelCosmos {
       TravelCosmos.debris.push(burst)
       AnimationStage.stage.addChild(child)
     }
+
+    for (let i = radialTotal; i--; ) {
+      const radial = new Radial(bounds)
+      const child: PIXI.Sprite = radial.draw()
+      TravelCosmos.debris.push(radial)
+      AnimationStage.stage.addChild(child)
+    }
   }
 
   update() {
     if (TravelCosmos.debris.length > 0) {
       for (let i = TravelCosmos.debris.length; i--; ) {
-        TravelCosmos.debris[i].update()
+        TravelCosmos.debris[i].update(TravelCosmos.debris[i])
       }
     }
   }
 
   reset() {
-    for (const to in this.timeouts) {
-      window.clearTimeout(to)
-    }
     AnimationStage.stage.removeChildren()
     TravelCosmos.debris.length = 0
     this.init(AnimationStage.bounds)
