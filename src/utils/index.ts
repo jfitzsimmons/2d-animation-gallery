@@ -41,3 +41,14 @@ export const shuffle = (array: [number, number][]): [number, number][] => {
 
   return array
 }
+
+export const distanceFromCenter = (
+  px: number,
+  py: number,
+  cx: number,
+  cy: number
+) => Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2))
+
+export function lerp(start_value: number, end_value: number, pct: number) {
+  return start_value + (end_value - start_value) * pct
+}
