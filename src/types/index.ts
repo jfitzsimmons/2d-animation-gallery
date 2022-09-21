@@ -32,3 +32,11 @@ export interface ScaleOptions {
   scaleModRatio: number
   scaleModIncrease: number
 }
+
+export interface SizeOptions {
+  bounds: Bounds
+  maxMultiplier: number
+  minMultiplier: number
+  maxLimit: number
+  minLimit: number
+}

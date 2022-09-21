@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js'
-import { GradientOptions } from '../types'
+import { GradientOptions, SizeOptions } from '../types'
 
 export function hslToHex(h: number, s: number, l: number) {
   l /= 100
@@ -127,4 +127,16 @@ export function drawDashLine(
 
     graphics.moveTo(currentPosition.x, currentPosition.y)
   }
+}
+
+export function getSize(opts: SizeOptions): number {
+  const size = Math.round(
+    rndmRng(
+      opts.bounds.right * opts.maxMultiplier,
+      opts.bounds.right * opts.minMultiplier
+    )
+  )
+  const max = Math.min(size, opts.maxLimit)
+  const min = Math.max(size, opts.minLimit)
+  return size > max ? max : min
 }

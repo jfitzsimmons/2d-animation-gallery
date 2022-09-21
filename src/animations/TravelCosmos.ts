@@ -7,6 +7,7 @@ import {
   distanceFromCenter,
   lerp,
   createRadialTexture,
+  getSize,
 } from '../utils'
 import * as PIXI from 'pixi.js'
 
@@ -59,12 +60,23 @@ class Debris {
       (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
     this.alphaStart = graphics.alpha
     this.time = 1
+    const fromCenter: number = distanceFromCenter(
+      this.x,
+      this.y,
+      center.x,
+      center.y
+    )
+    //const powerOf =         1.3 + (1 - fromCenter / maxDistance) / 3 // greater the smaller the screen would work?!?!? TESTJPF
+
     this.duration =
       100 +
       Math.pow(
-        maxDistance - distanceFromCenter(this.x, this.y, center.x, center.y),
-        1.5
+        maxDistance - fromCenter,
+        1.1 + (1 - fromCenter / maxDistance) / 2.5
       )
+
+    //1.7 = max
+    //1.4=min
   }
 
   update(opts: Debris) {
@@ -109,6 +121,7 @@ class Debris {
     }
     this.duration *= 0.999
   }
+
   draw() {
     return {}
   }
@@ -157,7 +170,6 @@ class Burst extends Debris {
     this.scaleLimit = 1.5
     this.scaleModRatio = 0.00001 + this.duration * 0.000001
     this.scaleModIncrease = 0.0001
-    this.alphaStart = 1
   }
 
   draw() {
@@ -165,9 +177,15 @@ class Burst extends Debris {
     const graphics = new PIXI.Graphics()
     //TESTJPF have a max size!!!!
     //TESTJPF Maybe better to hardcode min and max!!!
-    const size = Math.round(
-      rndmRng(this.bounds.right * 0.3, this.bounds.right * 0.15)
-    )
+    const sizeOptions = {
+      bounds: this.bounds,
+      maxMultiplier: 0.3,
+      minMultiplier: 0.15,
+      maxLimit: 400,
+      minLimit: 200,
+    }
+
+    const size = getSize(sizeOptions)
     const huesSats = shuffle(TravelCosmos.hueSat)
 
     for (let i = 0; i < size; i++) {
@@ -199,6 +217,7 @@ class Burst extends Debris {
     const texture = app.renderer.generateTexture(graphics)
 
     this.sprite = new PIXI.Sprite(texture)
+    this.sprite.alpha = this.alphaStart
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.position.set(this.x, this.y)
     this.sprite.scale.set(0.1, 0.1)
@@ -243,6 +262,7 @@ class Speck extends Debris {
     const texture = app.renderer.generateTexture(graphics)
 
     this.sprite = new PIXI.Sprite(texture)
+    this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.scale.set(0.1, 0.1)
@@ -280,6 +300,7 @@ class Radial extends Debris {
     const texture = createRadialTexture(gradientOptions)
 
     this.sprite = new PIXI.Sprite(texture)
+    this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.scale.set(0.06, 0.06)
