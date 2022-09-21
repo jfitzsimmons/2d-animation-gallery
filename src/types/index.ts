@@ -16,3 +16,19 @@ export interface UpdateOptions {
   mod: number
   increase: number
 }
+
+export interface BoundsOptions {
+  w: number
+  h: number
+  position: { x: number; y: number }
+  scale: { x: number; y: number }
+  scaleLimit: number
+}
+
+export interface ScaleOptions {
+  w: number
+  h: number
+  position: { x: number; y: number }
+  scaleModRatio: number
+  scaleModIncrease: number
+}
