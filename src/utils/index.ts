@@ -1,5 +1,13 @@
 import * as PIXI from 'pixi.js'
 import { GradientOptions, SizeOptions } from '../types'
+//testJPF make util that returns hueSats??
+const hueSat: [number, number][] = [
+  [360, 0],
+  [204, 100],
+  [260, 31],
+  [340, 89],
+  [179, 79],
+]
 
 export function hslToHex(h: number, s: number, l: number) {
   l /= 100
@@ -82,6 +90,8 @@ export function createRadialTexture(opts: GradientOptions) {
 }
 
 //TESTJPF NOt USED YET
+//is this needed
+//and when the hell did I make this :-)
 export function drawDashLine(
   graphics: PIXI.Graphics,
   toX: number,
@@ -153,7 +163,7 @@ export const splatterPoints = (
   for (let m = 1; m <= layers; m++) {
     strokeColor = hslToHex(204, 100, 48 + Math.round(rndmRng(51, 0)))
 
-    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.1))
+    graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.1))
     newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
     newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
     graphics.moveTo(newX, newY)
@@ -163,7 +173,7 @@ export const splatterPoints = (
     )
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(260, 31, 70 + Math.round(rndmRng(29, 0)))
-    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
     newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
     newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
     graphics.moveTo(newX, newY)
@@ -173,7 +183,7 @@ export const splatterPoints = (
     )
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(340, 89, 74 + Math.round(rndmRng(25, 0)))
-    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
     newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
     newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
     graphics.moveTo(newX, newY)
@@ -184,7 +194,7 @@ export const splatterPoints = (
     )
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(179, 79, 74 + Math.round(rndmRng(25, 0)))
-    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
     newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
     newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
     graphics.moveTo(newX, newY)
@@ -193,5 +203,83 @@ export const splatterPoints = (
       newY + Math.round(rndmRng(5, 1))
     )
     graphics.moveTo(ox, oy)
+  }
+}
+
+export function createArc(
+  graphics: PIXI.Graphics,
+  x: number,
+  y: number,
+  size: number
+) {
+  let start = 0
+  let end = rndmRng(2 * Math.PI, start + 0.2)
+
+  while (start < 2 * Math.PI) {
+    const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
+    const strokeColor = hslToHex(
+      _hueSat[0],
+      _hueSat[1],
+      Math.round(rndmRng(99, 60))
+    )
+
+    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.9))
+
+    const spacing = (2 * Math.PI) / rndmRng(300, 150)
+
+    while (start <= end) {
+      graphics.arc(x, y, size, start, start + spacing)
+      start += spacing * 1.5
+      graphics.closePath()
+    }
+
+    end = rndmRng(2 * Math.PI, start + 0.2)
+  }
+}
+
+export function circleShading(
+  graphics: PIXI.Graphics,
+  x: number,
+  y: number,
+  size: number
+) {
+  const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
+  const strokeColor = hslToHex(
+    _hueSat[0],
+    _hueSat[1],
+    Math.round(rndmRng(99, 60))
+  )
+
+  let startAngle = Math.floor(rndmRng(2 * Math.PI, 0))
+  let endAngle = startAngle + 1
+  let increment = rndmRng(6, 3.3)
+  const layers = Math.round(size / 28)
+
+  for (let i = 0; i < layers; i++) {
+    let counter = startAngle
+    graphics.lineStyle(
+      Math.round(rndmRng(5, 1)),
+      strokeColor,
+      rndmRng(0.6, 0.1)
+    )
+    graphics.alpha = rndmRng(1 - i * 0.05, 0.9 - i * 0.05)
+
+    endAngle =
+      startAngle - i / 30 + increment > 2 * Math.PI
+        ? startAngle - i / 30 + increment - 2 * Math.PI
+        : startAngle - i / 30 + increment
+    const spacing = (2 * Math.PI) / rndmRng(300, 150)
+    const layerSize = Math.round(size - (i / 2) * 10)
+
+    while (counter <= endAngle) {
+      graphics.arc(x, y, layerSize, counter, counter + spacing)
+      counter += spacing * 1.5
+      graphics.closePath()
+    }
+
+    increment -=
+      rndmRng(increment * 0.03, increment * 0.001) + (layers / 10) * 0.01
+
+    startAngle += i / rndmRng(30, 20)
   }
 }

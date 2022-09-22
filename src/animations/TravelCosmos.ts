@@ -9,6 +9,8 @@ import {
   createRadialTexture,
   getSize,
   splatterPoints,
+  createArc,
+  circleShading,
 } from '../utils'
 import * as PIXI from 'pixi.js'
 
@@ -163,6 +165,54 @@ class Debris {
     return scaleModifier
   }
 }
+
+class Circle extends Debris {
+  constructor(bounds: Bounds) {
+    super(bounds)
+    this.duration = this.getDuration(2.5)
+    this.scaleLimit = 0.8
+    this.scaleModRatio = 0.09 + this.duration * 0.00015
+    this.scaleModIncrease = 0.0000004
+    this.alphaStart *= 1.2
+  }
+
+  newInstance() {
+    return new Circle(this.bounds)
+  }
+
+  draw() {
+    const graphics = new PIXI.Graphics()
+    const sizeOptions = {
+      bounds: this.bounds,
+      maxMultiplier: 0.17,
+      minMultiplier: 0.05,
+      maxLimit: 400,
+      minLimit: 100,
+    }
+    let size = getSize(sizeOptions)
+    const rings = Math.round(rndmRng(5, 2))
+
+    //testjpf make hue sat shuffle and color a Debris method?!?!?
+
+    for (let c = 1; c <= rings; c++) {
+      createArc(graphics, this.x, this.y, size)
+      if (Math.random() > 0.5) circleShading(graphics, this.x, this.y, size)
+      size = size * rndmRng(1.6, 1.2)
+    }
+
+    graphics.cacheAsBitmap = true
+
+    const texture = app.renderer.generateTexture(graphics)
+
+    this.sprite = new PIXI.Sprite(texture)
+    this.sprite.alpha = this.alphaStart
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.position.set(this.x, this.y)
+    this.sprite.scale.set(0.07, 0.07)
+
+    return this.sprite
+  }
+}
 class CurvedLine extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
@@ -183,20 +233,20 @@ class CurvedLine extends Debris {
     const startY = rndmRng(300, -100)
     const graphics = new PIXI.Graphics()
 
-    for (let i = startX; i <= this.bounds.right + 10; i += rndmRng(9, 3)) {
-      graphics.lineStyle(Math.round(rndmRng(5, 1)), 0xfefefe, rndmRng(1, 0.1))
+    for (let i = startX; i <= this.bounds.right + 10; i += rndmRng(14, 6)) {
+      graphics.lineStyle(Math.round(rndmRng(5, 1)), 0xfefefe, rndmRng(0.6, 0.1))
 
       const increase = ((90 / 180) * Math.PI) / rndmRng(30, 15)
       const splatterCenter = {
-        x: i + rndmRng(9, 3),
+        x: i + rndmRng(14, 6),
         y: Math.round(startY + i / 2 - Math.sin(counter) * height),
       }
       counter += increase
 
       graphics.moveTo(splatterCenter.x, splatterCenter.y)
       graphics.lineTo(
-        splatterCenter.x + Math.round(rndmRng(5, 1)),
-        splatterCenter.y + Math.round(rndmRng(5, 1))
+        splatterCenter.x + Math.round(rndmRng(9, 5)),
+        splatterCenter.y + Math.round(rndmRng(9, 5))
       )
 
       const splatter = Math.round(rndmRng(10, 1))
@@ -378,10 +428,10 @@ export default class TravelCosmos {
 
   init(bounds: Bounds) {
     const burstTotal = Math.round((bounds.right * bounds.bottom) / 180000)
-
     const speckTotal = Math.round((bounds.right * bounds.bottom) / 47000)
-
     const radialTotal = Math.round(rndmRng(7, 3))
+    const circleTotal =
+      burstTotal <= 1 ? 1 : Math.round(rndmRng(burstTotal - 1, 1))
 
     for (let i = speckTotal; i--; ) {
       const speck = new Speck(bounds)
@@ -408,6 +458,13 @@ export default class TravelCosmos {
     const child: PIXI.Sprite = curvedLine.draw()
     TravelCosmos.debris.push(curvedLine)
     AnimationStage.stage.addChild(child)
+
+    for (let i = circleTotal; i--; ) {
+      const circle = new Circle(bounds)
+      const child: PIXI.Sprite = circle.draw()
+      TravelCosmos.debris.push(circle)
+      AnimationStage.stage.addChild(child)
+    }
   }
 
   update() {
