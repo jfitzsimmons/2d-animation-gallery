@@ -140,3 +140,58 @@ export function getSize(opts: SizeOptions): number {
   const min = Math.max(size, opts.minLimit)
   return size > max ? max : min
 }
+
+export const splatterPoints = (
+  ox: number,
+  oy: number,
+  layers: number,
+  graphics: PIXI.Graphics
+) => {
+  let strokeColor = 0xfefefe
+  let newX = 0
+  let newY = 0
+  for (let m = 1; m <= layers; m++) {
+    strokeColor = hslToHex(204, 100, 48 + Math.round(rndmRng(51, 0)))
+
+    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.1))
+    newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
+    newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
+    graphics.moveTo(newX, newY)
+    graphics.lineTo(
+      newX + Math.round(rndmRng(5, 1)),
+      newY + Math.round(rndmRng(5, 1))
+    )
+    graphics.moveTo(ox, oy)
+    strokeColor = hslToHex(260, 31, 70 + Math.round(rndmRng(29, 0)))
+    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
+    newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
+    graphics.moveTo(newX, newY)
+    graphics.lineTo(
+      newX + Math.round(rndmRng(5, 1)),
+      newY + Math.round(rndmRng(5, 1))
+    )
+    graphics.moveTo(ox, oy)
+    strokeColor = hslToHex(340, 89, 74 + Math.round(rndmRng(25, 0)))
+    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
+    newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
+    graphics.moveTo(newX, newY)
+
+    graphics.lineTo(
+      newX + Math.round(rndmRng(5, 1)),
+      newY + Math.round(rndmRng(5, 1))
+    )
+    graphics.moveTo(ox, oy)
+    strokeColor = hslToHex(179, 79, 74 + Math.round(rndmRng(25, 0)))
+    graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
+    newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
+    newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
+    graphics.moveTo(newX, newY)
+    graphics.lineTo(
+      newX + Math.round(rndmRng(5, 1)),
+      newY + Math.round(rndmRng(5, 1))
+    )
+    graphics.moveTo(ox, oy)
+  }
+}

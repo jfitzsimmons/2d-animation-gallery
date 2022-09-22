@@ -8,6 +8,7 @@ import {
   lerp,
   createRadialTexture,
   getSize,
+  splatterPoints,
 } from '../utils'
 import * as PIXI from 'pixi.js'
 
@@ -17,12 +18,12 @@ class Debris {
   y: number
   bounds: Bounds
   endPoint: { x: number; y: number }
-  time: number
+  time = 1
   duration: number
   //scaling
   scaleModRatio: number
-  scaleModIncrease: number
-  scaleLimit: number
+  scaleModIncrease = 0.0001
+  scaleLimit = 2
   alphaStart: number
   //return
   sprite: PIXI.Sprite
@@ -36,7 +37,6 @@ class Debris {
       rndmRng(this.bounds.bottom * 0.75, this.bounds.bottom * 0.25)
     )
 
-    const graphics = new PIXI.Graphics()
     const center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
     const slope = (this.y - center.y) / (this.x - center.x)
     const angle = Math.atan(slope)
@@ -55,28 +55,30 @@ class Debris {
       x: this.x + distanceX * Math.cos(angle),
       y: this.y + distanceY * Math.sin(angle) * flip,
     }
-    graphics.alpha =
+    this.alphaStart =
       1 -
       (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
-    this.alphaStart = graphics.alpha
-    this.time = 1
+    this.scaleModRatio = 0.00003 + this.duration * 0.0000008
+    this.duration = this.getDuration(2.5)
+  }
+
+  getDuration(mod: number) {
+    const center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
+    const maxDistance =
+      this.bounds.right > this.bounds.bottom ? center.x : center.y
     const fromCenter: number = distanceFromCenter(
       this.x,
       this.y,
       center.x,
       center.y
     )
-    //const powerOf =         1.3 + (1 - fromCenter / maxDistance) / 3 // greater the smaller the screen would work?!?!? TESTJPF
-
-    this.duration =
+    return (
       100 +
       Math.pow(
         maxDistance - fromCenter,
-        1.1 + (1 - fromCenter / maxDistance) / 2.5
+        1.1 + (1 - fromCenter / maxDistance) / mod
       )
-
-    //1.7 = max
-    //1.4=min
+    )
   }
 
   update(opts: Debris) {
@@ -138,9 +140,8 @@ class Debris {
       opts.position.y - opts.h / 2 > this.bounds.bottom ||
       opts.scale.x > opts.scaleLimit + 1 ||
       opts.scale.y > opts.scaleLimit + 1
-    ) {
+    )
       return true
-    }
   }
 
   getScaleModifier(opts: ScaleOptions) {
@@ -162,7 +163,55 @@ class Debris {
     return scaleModifier
   }
 }
-//TESTJPF this is where you left off
+class CurvedLine extends Debris {
+  constructor(bounds: Bounds) {
+    super(bounds)
+    this.duration = this.getDuration(3.5)
+    this.scaleLimit = 0.6
+    this.scaleModRatio = 0.05 + this.duration * 0.0004
+    this.scaleModIncrease = 0.0000002
+  }
+
+  newInstance() {
+    return new CurvedLine(this.bounds)
+  }
+
+  draw() {
+    let counter = 0
+    const startX = rndmRng(-250, 0)
+    const height = rndmRng(350, 40)
+    const startY = rndmRng(300, -100)
+    const graphics = new PIXI.Graphics()
+
+    for (let i = startX; i <= this.bounds.right + 10; i += rndmRng(9, 3)) {
+      graphics.lineStyle(Math.round(rndmRng(5, 1)), 0xfefefe, rndmRng(1, 0.1))
+
+      const increase = ((90 / 180) * Math.PI) / rndmRng(30, 15)
+      const splatterCenter = {
+        x: i + rndmRng(9, 3),
+        y: Math.round(startY + i / 2 - Math.sin(counter) * height),
+      }
+      counter += increase
+
+      graphics.moveTo(splatterCenter.x, splatterCenter.y)
+      graphics.lineTo(
+        splatterCenter.x + Math.round(rndmRng(5, 1)),
+        splatterCenter.y + Math.round(rndmRng(5, 1))
+      )
+
+      const splatter = Math.round(rndmRng(10, 1))
+      splatterPoints(splatterCenter.x, splatterCenter.y, splatter, graphics)
+    }
+
+    const texture = app.renderer.generateTexture(graphics)
+    this.sprite = new PIXI.Sprite(texture)
+    this.sprite.alpha = this.alphaStart
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.scale.set(0.05, 0.05)
+
+    return this.sprite
+  }
+}
 class Burst extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
@@ -175,8 +224,6 @@ class Burst extends Debris {
   draw() {
     let hsIndex = 0
     const graphics = new PIXI.Graphics()
-    //TESTJPF have a max size!!!!
-    //TESTJPF Maybe better to hardcode min and max!!!
     const sizeOptions = {
       bounds: this.bounds,
       maxMultiplier: 0.3,
@@ -184,7 +231,6 @@ class Burst extends Debris {
       maxLimit: 400,
       minLimit: 200,
     }
-
     const size = getSize(sizeOptions)
     const huesSats = shuffle(TravelCosmos.hueSat)
 
@@ -357,6 +403,11 @@ export default class TravelCosmos {
       TravelCosmos.debris.push(radial)
       AnimationStage.stage.addChild(child)
     }
+
+    const curvedLine = new CurvedLine(bounds)
+    const child: PIXI.Sprite = curvedLine.draw()
+    TravelCosmos.debris.push(curvedLine)
+    AnimationStage.stage.addChild(child)
   }
 
   update() {
