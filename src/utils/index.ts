@@ -90,6 +90,8 @@ export function createRadialTexture(opts: GradientOptions) {
 }
 
 //TESTJPF NOt USED YET
+//is this needed
+//and when the hell did I make this :-)
 export function drawDashLine(
   graphics: PIXI.Graphics,
   toX: number,
@@ -220,25 +222,16 @@ export function createArc(
       _hueSat[1],
       Math.round(rndmRng(99, 60))
     )
-    graphics.lineStyle(
-      Math.round(rndmRng(5, 1)),
-      strokeColor,
-      rndmRng(0.6, 0.1)
-    )
-    /** 
-      ctx.strokeStyle = pickGradient(0);
-      setDashedLines();
-      ctx.beginPath();
-*/
-    const spacing = (2 * Math.PI) / rndmRng(200, 100)
+
+    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.9))
+
+    const spacing = (2 * Math.PI) / rndmRng(300, 150)
+
     while (start <= end) {
       graphics.arc(x, y, size, start, start + spacing)
-      start += spacing * 2
+      start += spacing * 1.5
       graphics.closePath()
     }
-
-    //ctx.arc(x, y, size, start, end);
-    //ctx.stroke();
 
     end = rndmRng(2 * Math.PI, start + 0.2)
   }
@@ -257,7 +250,6 @@ export function circleShading(
     Math.round(rndmRng(99, 60))
   )
 
-  //let gradients=shuffle(gradientArray);
   let startAngle = Math.floor(rndmRng(2 * Math.PI, 0))
   let endAngle = startAngle + 1
   let increment = rndmRng(6, 3.3)
@@ -272,29 +264,19 @@ export function circleShading(
     )
     graphics.alpha = rndmRng(1 - i * 0.05, 0.9 - i * 0.05)
 
-    // ctx.strokeStyle = `hsla(${gradients[0]},${Math.round(rndmRng(99,60))}%, ${rndmRng(1-(i*.05),.9-(i*.05))})`;
-    //ctx.beginPath();
     endAngle =
       startAngle - i / 30 + increment > 2 * Math.PI
         ? startAngle - i / 30 + increment - 2 * Math.PI
         : startAngle - i / 30 + increment
-
-    const spacing = (2 * Math.PI) / rndmRng(200, 100)
-    // const layerStartAngle = counter + i / rndmRng(10, 4)
+    const spacing = (2 * Math.PI) / rndmRng(300, 150)
     const layerSize = Math.round(size - (i / 2) * 10)
-    /** 
-    while (startAngle <= endAngle) {
-      graphics.arc(x, y, layerSize, layerStartAngle, startAngle + spacing)
-      startAngle += spacing * 2
-      graphics.closePath()
-    }
-    */
+
     while (counter <= endAngle) {
       graphics.arc(x, y, layerSize, counter, counter + spacing)
-      counter += spacing * 2
+      counter += spacing * 1.5
       graphics.closePath()
     }
-    // ctx.stroke();
+
     increment -=
       rndmRng(increment * 0.03, increment * 0.001) + (layers / 10) * 0.01
 

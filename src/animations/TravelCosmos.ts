@@ -169,6 +169,11 @@ class Debris {
 class Circle extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
+    this.duration = this.getDuration(2.5)
+    this.scaleLimit = 0.8
+    this.scaleModRatio = 0.09 + this.duration * 0.00015
+    this.scaleModIncrease = 0.0000004
+    this.alphaStart *= 1.2
   }
 
   newInstance() {
@@ -203,7 +208,7 @@ class Circle extends Debris {
     this.sprite.alpha = this.alphaStart
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.position.set(this.x, this.y)
-    //this.sprite.scale.set(0.1, 0.1)
+    this.sprite.scale.set(0.07, 0.07)
 
     return this.sprite
   }
@@ -463,12 +468,11 @@ export default class TravelCosmos {
   }
 
   update() {
-    /**
     if (TravelCosmos.debris.length > 0) {
       for (let i = TravelCosmos.debris.length; i--; ) {
         TravelCosmos.debris[i].update(TravelCosmos.debris[i])
       }
-    } */
+    }
   }
 
   reset() {
