@@ -89,53 +89,31 @@ export function createRadialTexture(opts: GradientOptions) {
   })
 }
 
-//TESTJPF NOt USED YET
-//is this needed
-//and when the hell did I make this :-)
 export function drawDashLine(
   graphics: PIXI.Graphics,
+  fromX: number,
+  fromY: number,
   toX: number,
   toY: number,
+  angle: number,
   dash = 16,
   gap = 8
 ) {
-  const currentPosition = {
-    x: graphics.x,
-    y: graphics.y,
-  }
+  let xn = fromX + dash * Math.cos(angle)
+  let yn = fromY + dash * Math.sin(angle)
+  let counter = 0
+  const distance = distanceFromCenter(fromX, fromY, toX, toY)
 
-  const absValues = {
-    toX: Math.abs(toX),
-    toY: Math.abs(toY),
-  }
+  while (counter < distance) {
+    graphics.moveTo(xn, yn)
+    xn += dash * Math.cos(angle)
+    yn += dash * Math.sin(angle)
 
-  for (
-    ;
-    Math.abs(currentPosition.x) < absValues.toX ||
-    Math.abs(currentPosition.y) < absValues.toY;
-
-  ) {
-    currentPosition.x =
-      Math.abs(currentPosition.x + dash) < absValues.toX
-        ? currentPosition.x + dash
-        : toX
-    currentPosition.y =
-      Math.abs(currentPosition.y + dash) < absValues.toY
-        ? currentPosition.y + dash
-        : toY
-
-    graphics.lineTo(currentPosition.x, currentPosition.y)
-
-    currentPosition.x =
-      Math.abs(currentPosition.x + gap) < absValues.toX
-        ? currentPosition.x + gap
-        : toX
-    currentPosition.y =
-      Math.abs(currentPosition.y + gap) < absValues.toY
-        ? currentPosition.y + gap
-        : toY
-
-    graphics.moveTo(currentPosition.x, currentPosition.y)
+    graphics.lineTo(xn, yn)
+    xn += gap * Math.cos(angle)
+    yn += gap * Math.sin(angle)
+    graphics.closePath()
+    counter += dash + gap
   }
 }
 
@@ -223,7 +201,7 @@ export function createArc(
       Math.round(rndmRng(99, 60))
     )
 
-    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.9))
+    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
 
     const spacing = (2 * Math.PI) / rndmRng(300, 150)
 
@@ -260,14 +238,13 @@ export function circleShading(
     graphics.lineStyle(
       Math.round(rndmRng(5, 1)),
       strokeColor,
-      rndmRng(0.6, 0.1)
+      rndmRng(0.9 - i * 0.09, 0.8 - i * 0.09)
     )
-    graphics.alpha = rndmRng(1 - i * 0.05, 0.9 - i * 0.05)
 
     endAngle =
       startAngle - i / 30 + increment > 2 * Math.PI
-        ? startAngle - i / 30 + increment - 2 * Math.PI
-        : startAngle - i / 30 + increment
+        ? startAngle - i / 7 + increment - 2 * Math.PI
+        : startAngle - i / 7 + increment
     const spacing = (2 * Math.PI) / rndmRng(300, 150)
     const layerSize = Math.round(size - (i / 2) * 10)
 
