@@ -1,5 +1,5 @@
 import { AnimationStage, app } from '..'
-import { Bounds, BoundsOptions, GradientOptions, ScaleOptions } from '../types'
+import { Bounds, BoundsOptions, GradientOptions } from '../types'
 import {
   hslToHex,
   rndmRng,
@@ -24,7 +24,7 @@ class Debris {
   time = 1
   duration: number
   //scaling
-  scaleModRatio: number
+  scaleModRatio = 0.000001
   scaleModIncrease = 0.0001
   scaleLimit = 2
   alphaStart: number
@@ -61,7 +61,6 @@ class Debris {
     this.alphaStart =
       1 -
       (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
-    this.scaleModRatio = 0.00003 + this.duration * 0.0000008
     this.duration = this.getDuration(2.5)
   }
 
@@ -103,20 +102,13 @@ class Debris {
         AnimationStage.stage.addChild(child)
     }
 
-    //testjpf have some way to cutoff the scalemodifie
-    //use scale limit?!?!
-    const scaleOptions = {
-      w: _opts.sprite.width,
-      h: _opts.sprite.height,
-      position: { x: _opts.sprite.x, y: _opts.sprite.y },
-      scaleModRatio: _opts.scaleModRatio,
-      scaleModIncrease: _opts.scaleModIncrease,
-    }
-
     this.time += 1
+
     this.sprite.scale.set(
-      _opts.sprite.scale.x + _opts.getScaleModifier(scaleOptions),
-      _opts.sprite.scale.y + _opts.getScaleModifier(scaleOptions)
+      (_opts.sprite.scale.x *=
+        1.001 + _opts.duration * 0.3 * opts.scaleModRatio),
+      (_opts.sprite.scale.y *=
+        1.001 + _opts.duration * 0.3 * opts.scaleModRatio)
     )
     this.sprite.position.set(
       lerp(_opts.x, _opts.endPoint.x, _opts.time / _opts.duration),
@@ -148,34 +140,13 @@ class Debris {
     )
       return true
   }
-
-  getScaleModifier(opts: ScaleOptions) {
-    const scaleModifier =
-      ((this.bounds.right + this.bounds.bottom) * opts.scaleModRatio -
-        Math.sqrt(
-          Math.pow(
-            (opts.position.x + opts.w / 2 - this.bounds.right / 2) *
-              (opts.scaleModRatio * 2),
-            2
-          ) +
-            Math.pow(
-              (opts.position.y + opts.h / 2 - this.bounds.bottom / 2) *
-                (opts.scaleModRatio * 2),
-              2
-            )
-        )) *
-      opts.scaleModIncrease
-    return scaleModifier
-  }
 }
 
 class Points extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
-    this.duration = this.getDuration(4.6)
-    this.scaleLimit = 0.1
-    this.scaleModRatio = 0.12 + this.duration * 0.00018
-    this.scaleModIncrease = 0.0000005
+    this.scaleLimit = 0.3
+    this.scaleModRatio = 0.0000007
   }
 
   newInstance() {
@@ -198,9 +169,7 @@ class Points extends Debris {
       this.bounds.right > this.bounds.bottom
         ? this.bounds.right
         : this.bounds.bottom
-    console.log('draw')
     for (let i = 0; i < lines; i++) {
-      console.log(`draw: i: ${i} | lines: ${lines}`)
       const _hueSat =
         TravelCosmos.hueSat[
           Math.round(rndmRng(TravelCosmos.hueSat.length - 1, 0))
@@ -247,7 +216,7 @@ class Points extends Debris {
     this.sprite.alpha = this.alphaStart
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.08, 0.08)
+    this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
   }
@@ -256,10 +225,9 @@ class Points extends Debris {
 class Circle extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
-    this.duration = this.getDuration(2.6)
+    this.duration = this.getDuration(3.2)
     this.scaleLimit = 0.8
-    this.scaleModRatio = 0.09 + this.duration * 0.00015
-    this.scaleModIncrease = 0.0000004
+    this.scaleModRatio = 0.0000014
   }
 
   newInstance() {
@@ -292,7 +260,7 @@ class Circle extends Debris {
     this.sprite.alpha = this.alphaStart
     this.sprite.anchor.set(0.5, 0.5)
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.11, 0.11)
+    this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
   }
@@ -300,10 +268,9 @@ class Circle extends Debris {
 class CurvedLine extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
-    this.duration = this.getDuration(3.5)
+    this.duration = this.getDuration(1.8)
     this.scaleLimit = 0.5
-    this.scaleModRatio = 0.05 + this.duration * 0.0004
-    this.scaleModIncrease = 0.0000002
+    this.scaleModRatio = 0.0000008
   }
 
   newInstance() {
@@ -341,7 +308,7 @@ class CurvedLine extends Debris {
     this.sprite = new PIXI.Sprite(texture)
     this.sprite.alpha = this.alphaStart
     this.sprite.anchor.set(0.5, 0.5)
-    this.sprite.scale.set(0.05, 0.05)
+    this.sprite.scale.set(0.01, 0.01)
 
     return this.sprite
   }
@@ -351,8 +318,8 @@ class Burst extends Debris {
     super(bounds)
 
     this.scaleLimit = 1.5
-    this.scaleModRatio = 0.00001 + this.duration * 0.000001
-    this.scaleModIncrease = 0.0001
+    this.scaleModRatio = 0.000001
+    this.duration = this.getDuration(2.8)
   }
 
   draw() {
@@ -415,8 +382,6 @@ class Speck extends Debris {
     super(bounds)
 
     this.scaleLimit = 2
-    this.scaleModRatio = this.duration * 0.0000008
-    this.scaleModIncrease = 0.0002
     this.alphaStart = 1
   }
 
@@ -445,7 +410,7 @@ class Speck extends Debris {
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.anchor.set(0.5, 0.5)
-    this.sprite.scale.set(0.1, 0.1)
+    this.sprite.scale.set(0.3, 0.3)
 
     return this.sprite
   }
@@ -456,8 +421,7 @@ class Radial extends Debris {
     super(bounds)
 
     this.scaleLimit = 3
-    this.scaleModRatio = 0.00003 + this.duration * 0.0000008
-    this.scaleModIncrease = 0.0001
+
     this.alphaStart = 1
   }
 
