@@ -25,14 +25,6 @@ export interface BoundsOptions {
   scaleLimit: number
 }
 
-export interface ScaleOptions {
-  w: number
-  h: number
-  position: { x: number; y: number }
-  scaleModRatio: number
-  scaleModIncrease: number
-}
-
 export interface SizeOptions {
   bounds: Bounds
   maxMultiplier: number
