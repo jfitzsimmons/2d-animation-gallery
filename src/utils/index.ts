@@ -1,13 +1,5 @@
 import * as PIXI from 'pixi.js'
 import { GradientOptions, SizeOptions } from '../types'
-//testJPF make util that returns hueSats??
-const hueSat: [number, number][] = [
-  [360, 0],
-  [204, 100],
-  [260, 31],
-  [340, 89],
-  [179, 79],
-]
 
 export function hslToHex(h: number, s: number, l: number) {
   l /= 100
@@ -53,12 +45,8 @@ export const shuffle = (array: [number, number][]): [number, number][] => {
   return array
 }
 
-export const distanceFromCenter = (
-  px: number,
-  py: number,
-  cx: number,
-  cy: number
-) => Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2))
+export const distanceFrom = (px: number, py: number, cx: number, cy: number) =>
+  Math.sqrt(Math.pow(px - cx, 2) + Math.pow(py - cy, 2))
 
 export function lerp(start_value: number, end_value: number, pct: number) {
   return start_value + (end_value - start_value) * pct
@@ -102,7 +90,7 @@ export function drawDashLine(
   let xn = fromX + dash * Math.cos(angle)
   let yn = fromY + dash * Math.sin(angle)
   let counter = 0
-  const distance = distanceFromCenter(fromX, fromY, toX, toY)
+  const distance = distanceFrom(fromX, fromY, toX, toY)
 
   while (counter < distance) {
     graphics.moveTo(xn, yn)
@@ -194,15 +182,6 @@ export function createArc(
   let end = rndmRng(2 * Math.PI, start + 0.2)
 
   while (start < 2 * Math.PI) {
-    const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
-    const strokeColor = hslToHex(
-      _hueSat[0],
-      _hueSat[1],
-      Math.round(rndmRng(99, 60))
-    )
-
-    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
-
     const spacing = (2 * Math.PI) / rndmRng(300, 150)
 
     while (start <= end) {
@@ -219,15 +198,9 @@ export function circleShading(
   graphics: PIXI.Graphics,
   x: number,
   y: number,
-  size: number
+  size: number,
+  strokeColor: number
 ) {
-  const _hueSat = hueSat[Math.round(rndmRng(hueSat.length - 1, 0))]
-  const strokeColor = hslToHex(
-    _hueSat[0],
-    _hueSat[1],
-    Math.round(rndmRng(99, 60))
-  )
-
   let startAngle = Math.floor(rndmRng(2 * Math.PI, 0))
   let endAngle = startAngle + 1
   let increment = rndmRng(6, 3.3)
@@ -236,9 +209,9 @@ export function circleShading(
   for (let i = 0; i < layers; i++) {
     let counter = startAngle
     graphics.lineStyle(
-      Math.round(rndmRng(5, 1)),
+      Math.round(rndmRng(7, 3)),
       strokeColor,
-      rndmRng(0.9 - i * 0.09, 0.8 - i * 0.09)
+      rndmRng(0.9 - i * 0.08, 0.8 - i * 0.08)
     )
 
     endAngle =
@@ -246,7 +219,7 @@ export function circleShading(
         ? startAngle - i / 7 + increment - 2 * Math.PI
         : startAngle - i / 7 + increment
     const spacing = (2 * Math.PI) / rndmRng(300, 150)
-    const layerSize = Math.round(size - (i / 2) * 10)
+    const layerSize = Math.round(size - (i / 2) * 18)
 
     while (counter <= endAngle) {
       graphics.arc(x, y, layerSize, counter, counter + spacing)
