@@ -105,6 +105,10 @@ export default class XorCircles {
     return this.fillColors[Math.floor(Math.random() * this.fillColors.length)]
   }
 
+  newInstance() {
+    return new XorCircles()
+  }
+
   init(bounds: Bounds) {
     const circleAmount = Math.round((bounds.right * bounds.bottom) / 47000)
     for (let i = circleAmount; i--; ) {

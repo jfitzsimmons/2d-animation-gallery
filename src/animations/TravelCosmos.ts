@@ -505,6 +505,10 @@ export default class TravelCosmos {
     [179, 79],
   ]
 
+  newInstance() {
+    return new TravelCosmos()
+  }
+
   init(bounds: Bounds) {
     const burstTotal = Math.round((bounds.right * bounds.bottom) / 170000)
     const speckTotal = Math.round((bounds.right * bounds.bottom) / 37000)

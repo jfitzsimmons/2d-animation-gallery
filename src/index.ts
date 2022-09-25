@@ -2,7 +2,7 @@ import TravelCosmos from './animations/TravelCosmos'
 import XorCircles from './animations/XorCircles'
 import * as PIXI from 'pixi.js'
 import '../assets/style.scss'
-import { debounce } from './utils'
+import { debounce, rndmRng } from './utils'
 import { Bounds } from './types'
 
 export class AnimationStage {
@@ -27,10 +27,12 @@ export class AnimationStage {
    */
   domElement: HTMLElement
   renderer: PIXI.AbstractRenderer
-  currentAnimation: XorCircles
+  currentAnimation: TravelCosmos
+  animations: [TravelCosmos, XorCircles]
 
   constructor(domElementSelector: string) {
     this.domElement = document.getElementById(domElementSelector)
+    this.animations = [new TravelCosmos(), new XorCircles()]
 
     AnimationStage.bounds = {
       left: 0,
@@ -39,7 +41,13 @@ export class AnimationStage {
       bottom: 0,
     }
 
-    this.currentAnimation = new XorCircles()
+    this.currentAnimation = this.getAnimation()
+  }
+
+  getAnimation() {
+    return this.animations[
+      Math.round(rndmRng(this.animations.length - 1, 0))
+    ].newInstance()
   }
 
   ready() {
