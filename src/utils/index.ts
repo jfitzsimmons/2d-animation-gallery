@@ -194,6 +194,27 @@ export function createArc(
   }
 }
 
+export function createHalfArc(
+  graphics: PIXI.Graphics,
+  x: number,
+  y: number,
+  size: number,
+  start: number
+) {
+  const counterClockwise = Math.random() < 0.5 ? true : false
+  const end = Math.PI + start
+  const spacing = Math.PI / rndmRng(150, 75)
+  const flip = counterClockwise ? -1 : 1
+  let counter = start
+
+  while (counter <= end) {
+    graphics.arc(x, y, size, start, start + spacing * flip, counterClockwise)
+    counter += spacing * 1.5
+    graphics.closePath()
+    start += spacing * 1.5 * flip
+  }
+}
+
 export function circleShading(
   graphics: PIXI.Graphics,
   x: number,
@@ -216,8 +237,8 @@ export function circleShading(
 
     endAngle =
       startAngle - i / 30 + increment > 2 * Math.PI
-        ? startAngle - i / 7 + increment - 2 * Math.PI
-        : startAngle - i / 7 + increment
+        ? startAngle - i / 6 + increment - 2 * Math.PI
+        : startAngle - i / 6 + increment
     const spacing = (2 * Math.PI) / rndmRng(300, 150)
     const layerSize = Math.round(size - (i / 2) * 18)
 
@@ -228,8 +249,35 @@ export function circleShading(
     }
 
     increment -=
-      rndmRng(increment * 0.03, increment * 0.001) + (layers / 10) * 0.01
+      rndmRng(increment * 0.06, increment * 0.002) + (layers / 10) * 0.01
 
-    startAngle += i / rndmRng(30, 20)
+    startAngle += i / rndmRng(70, 40)
   }
+}
+
+export function convertToSprite(
+  x: number,
+  y: number,
+  alpha: number,
+  texture: PIXI.Texture
+) {
+  const sprite = new PIXI.Sprite(texture)
+  sprite.alpha = alpha
+  sprite.anchor.set(0.5, 0.5)
+  sprite.position.set(x, y)
+  return sprite
+}
+
+export function findNewPoint(
+  x: number,
+  y: number,
+  angle: number,
+  distance: number
+) {
+  const result = { x, y }
+
+  result.x = Math.cos(angle) * distance + x
+  result.y = Math.sin(angle) * distance + y
+
+  return result
 }

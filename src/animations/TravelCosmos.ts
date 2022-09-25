@@ -12,6 +12,9 @@ import {
   createArc,
   circleShading,
   drawDashLine,
+  convertToSprite,
+  createHalfArc,
+  findNewPoint,
 } from '../utils'
 import * as PIXI from 'pixi.js'
 
@@ -174,7 +177,6 @@ class Points extends Debris {
       const strokeColor = this.getStrokeColor(TravelCosmos.hueSat)
       graphics.lineStyle(Math.round(rndmRng(14, 6)), strokeColor, rndmRng(1, 1))
 
-      //testjpf left off here!!!!
       const x1 = Math.round(this.x + size * Math.cos((2 * Math.PI * i) / lines))
       const y1 = Math.round(this.y + size * Math.sin((2 * Math.PI * i) / lines))
       const x2 = Math.round(this.x + edge * Math.cos((2 * Math.PI * i) / lines))
@@ -209,14 +211,9 @@ class Points extends Debris {
         circleShading(graphics, this.x, this.y, size, strokeColor)
     }
 
-    graphics.cacheAsBitmap = true
-
     const texture = app.renderer.generateTexture(graphics)
 
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.anchor.set(0.5, 0.5)
-    this.sprite.position.set(this.x, this.y)
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -261,14 +258,71 @@ class Circle extends Debris {
       size = size * rndmRng(1.6, 1.2)
     }
 
-    graphics.cacheAsBitmap = true
+    const texture = app.renderer.generateTexture(graphics)
+
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    this.sprite.scale.set(0.02, 0.02)
+
+    return this.sprite
+  }
+}
+
+class MainCircle extends Debris {
+  constructor(bounds: Bounds) {
+    super(bounds)
+
+    this.scaleLimit = 0.3
+    this.scaleModRatio = 0.0000007
+  }
+
+  newInstance() {
+    return new MainCircle(this.bounds)
+  }
+
+  draw() {
+    const graphics = new PIXI.Graphics()
+    const edge =
+      this.bounds.right > this.bounds.bottom
+        ? this.bounds.right
+        : this.bounds.bottom
+
+    const strokeColor = this.getStrokeColor(TravelCosmos.hueSat)
+    const start = rndmRng(Math.PI, 0)
+    const sizeOptions = {
+      bounds: this.bounds,
+      maxMultiplier: 0.17,
+      minMultiplier: 0.05,
+      maxLimit: 470,
+      minLimit: 150,
+    }
+    let size = getSize(sizeOptions)
+
+    while (size < this.bounds.bottom) {
+      const strokeColor = this.getStrokeColor(TravelCosmos.hueSat)
+
+      graphics.lineStyle(
+        Math.round(rndmRng(7, 3)),
+        strokeColor,
+        rndmRng(1, 0.5)
+      )
+
+      Math.random() < 0.5
+        ? createHalfArc(graphics, this.x, this.y, size, start)
+        : createArc(graphics, this.x, this.y, size)
+      if (Math.random() < 0.5)
+        circleShading(graphics, this.x, this.y, size, strokeColor)
+      size = Math.round(size * rndmRng(1.8, 1.4))
+    }
+
+    const from = findNewPoint(this.x, this.y, start, -edge)
+    const to = findNewPoint(from.x, from.y, start, edge * 2)
+
+    graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
+    drawDashLine(graphics, from.x, from.y, to.x, to.y, start, 16, 8)
 
     const texture = app.renderer.generateTexture(graphics)
 
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.anchor.set(0.5, 0.5)
-    this.sprite.position.set(this.x, this.y)
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -315,9 +369,8 @@ class CurvedLine extends Debris {
     }
 
     const texture = app.renderer.generateTexture(graphics)
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.anchor.set(0.5, 0.5)
+
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.01, 0.01)
 
     return this.sprite
@@ -330,6 +383,10 @@ class Burst extends Debris {
     this.scaleLimit = 1.5
     this.scaleModRatio = 0.000001
     this.duration = this.getDuration(2.8)
+  }
+
+  newInstance() {
+    return new Burst(this.bounds)
   }
 
   draw() {
@@ -369,21 +426,11 @@ class Burst extends Debris {
       graphics.lineTo(rndmRng(dotX - 1, dotX - 5), rndmRng(dotY - 1, dotY - 5))
     }
 
-    graphics.cacheAsBitmap = true
-
     const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.anchor.set(0.5, 0.5)
-    this.sprite.position.set(this.x, this.y)
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.1, 0.1)
 
     return this.sprite
-  }
-
-  newInstance() {
-    return new Burst(this.bounds)
   }
 }
 
@@ -408,10 +455,7 @@ class Speck extends Debris {
 
     const texture = app.renderer.generateTexture(graphics)
 
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.position.set(this.x, this.y)
-    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.3, 0.3)
 
     return this.sprite
@@ -423,7 +467,6 @@ class Radial extends Debris {
     super(bounds)
 
     this.scaleLimit = 5
-
     this.alphaStart = 1
   }
 
@@ -445,10 +488,7 @@ class Radial extends Debris {
     }
     const texture = createRadialTexture(gradientOptions)
 
-    this.sprite = new PIXI.Sprite(texture)
-    this.sprite.alpha = this.alphaStart
-    this.sprite.position.set(this.x, this.y)
-    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
     this.sprite.scale.set(0.06, 0.06)
 
     return this.sprite
@@ -457,8 +497,6 @@ class Radial extends Debris {
 
 export default class TravelCosmos {
   static debris: Debris[] = []
-  static strokeColors = ['506EE5', '68B2F8', '7037CD']
-  static fillColors = [209, 291, 263]
   static hueSat: [number, number][] = [
     [360, 0],
     [204, 100],
@@ -512,6 +550,13 @@ export default class TravelCosmos {
       const points = new Points(bounds)
       const child: PIXI.Sprite = points.draw()
       TravelCosmos.debris.push(points)
+      AnimationStage.stage.addChild(child)
+    }
+
+    for (let i = 2; i--; ) {
+      const mainCircle = new MainCircle(bounds)
+      const child: PIXI.Sprite = mainCircle.draw()
+      TravelCosmos.debris.push(mainCircle)
       AnimationStage.stage.addChild(child)
     }
   }
