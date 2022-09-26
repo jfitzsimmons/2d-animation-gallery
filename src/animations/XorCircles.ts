@@ -174,14 +174,12 @@ export default class XorCircles {
     loader.load((loader, resources) => {
       const tiles = Object.keys(resources)
       tiles.forEach((t) => {
-        console.log(`t: ${t}`)
         for (let start = 0; start < AnimationStage.bounds.right; start++) {
           const sprite = new PIXI.Sprite(resources[t].texture)
           const drape = new Drape(AnimationStage.bounds, start, sprite)
 
           this.drapes.push(drape)
           AnimationStage.stage.addChild(drape.sprite)
-          console.log(`drape.sprite.width: ${drape.sprite.width}`)
           start += drape.sprite.width
         }
       })
