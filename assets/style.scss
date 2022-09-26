@@ -1,3 +1,81 @@
+body {
+  background-color: #000;
+}
+
+ul {
+  list-style: none;
+}
+
+.nav {
+  backdrop-filter: blur(4px) saturate(250%);
+  background-color: hsla(0, 0%, 0%, 0.6);
+  border: 0.3vmin solid hsla(0, 0%, 0%, 0.1);
+  filter: sepia(0%);
+  color: #fffa;
+  position: absolute;
+  z-index: 1;
+  width: fit-content;
+  font-family: 'Palatino Linotype', Palatino, Palladio, 'URW Palladio L',
+    'Book Antiqua', Baskerville, 'Bookman Old Style', 'Bitstream Charter',
+    'Nimbus Roman No9 L', Garamond, 'Apple Garamond', 'ITC Garamond Narrow',
+    'New Century Schoolbook', 'Century Schoolbook', 'Century Schoolbook L',
+    Georgia, serif;
+  padding-right: 40px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-bottom: 4px solid #fff0;
+  opacity: 1;
+  transition: opacity 3s, top 300ms, left 300ms, border-bottom 2s;
+
+  .active {
+    transition: color 300ms;
+    color: #ffff;
+  }
+}
+
+.nav.unstuck {
+  position: absolute;
+  top: calc(-4rem - 8vw);
+  left: calc(-2rem - 4vw);
+  border-bottom: 4px solid #ffff;
+  opacity: 0;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 76px;
+  font-size: calc(1rem + 2vw);
+  letter-spacing: calc(0.2rem + 0.2vw);
+  max-height: calc(3rem + 6vw);
+}
+
+.menu__link {
+  cursor: pointer;
+  width: fit-content;
+  transition: 0.3s;
+  &:hover {
+    text-decoration: underline;
+    color: #ffff;
+    transition: 0.3s;
+  }
+}
+
+.arrows {
+  font-size: calc(1.5rem + 3vw);
+  letter-spacing: calc(0.1rem + 0.1vw);
+  transition: 1s;
+  cursor: pointer;
+  text-align: right;
+
+  &:hover {
+    color: #ffff;
+    transition: 0.3s;
+  }
+}
+
 .canvas {
   position: fixed;
   top: 0;
@@ -9,8 +87,4 @@
 
 .canvas1 {
   animation: 20s linear 0s infinite alternate sats;
-}
-
-body {
-  background-color: #000;
 }

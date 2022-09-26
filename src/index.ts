@@ -3,7 +3,7 @@ import XorCircles from './animations/XorCircles'
 import * as PIXI from 'pixi.js'
 import '../assets/style.scss'
 import { debounce } from './utils'
-import { Bounds } from './types'
+import { AnimationSelect, Bounds } from './types'
 
 export class AnimationStage {
   static renderer: PIXI.AbstractRenderer
@@ -27,10 +27,15 @@ export class AnimationStage {
    */
   domElement: HTMLElement
   renderer: PIXI.AbstractRenderer
-  currentAnimation: XorCircles
+  currentAnimation: TravelCosmos
+  animations: AnimationSelect
 
   constructor(domElementSelector: string) {
     this.domElement = document.getElementById(domElementSelector)
+    this.animations = {
+      travelCosmos: new TravelCosmos(),
+      xorCircles: new XorCircles(),
+    }
 
     AnimationStage.bounds = {
       left: 0,
@@ -38,8 +43,29 @@ export class AnimationStage {
       right: 0,
       bottom: 0,
     }
+  }
 
-    this.currentAnimation = new XorCircles()
+  toggleUi() {
+    const navs = document.getElementsByClassName('nav')
+    navs[0].classList.contains('unstuck')
+      ? navs[0].classList.remove('unstuck')
+      : navs[0].classList.add('unstuck')
+  }
+
+  getAnimation(prop: keyof typeof this.animations) {
+    type AnimationKey = keyof typeof this.animations
+    const animationKey: AnimationKey = prop
+    const oldActives = document.getElementsByClassName('active')
+    if (oldActives.length > 0) oldActives[0].classList.remove('active')
+    const newActives = document.getElementsByClassName(animationKey)
+    if (newActives.length > 0) newActives[0].classList.add('active')
+    return this.animations[animationKey]
+  }
+
+  switchAnimation(prop: keyof typeof this.animations) {
+    this.currentAnimation.reset(false)
+    this.currentAnimation = this.getAnimation(prop)
+    this.currentAnimation.init(AnimationStage.bounds)
   }
 
   ready() {
@@ -75,9 +101,25 @@ export class AnimationStage {
     AnimationStage.stage = new PIXI.Container()
     AnimationStage.stage.interactiveChildren = false
 
+    let key: keyof typeof this.animations
+    for (key in this.animations) {
+      const _key = key
+      const element = document.createElement('li')
+      element.appendChild(document.createTextNode(_key))
+      element.addEventListener('click', () => this.switchAnimation(_key))
+      element.classList.add(`menu__link`, `${_key}`)
+      const menu = document.getElementById('menu')
+      menu.appendChild(element)
+    }
+
+    const uiToggles = document.getElementsByClassName('arrows')
+    if (uiToggles.length > 0)
+      uiToggles[0].addEventListener('click', () => this.toggleUi())
+
     window.addEventListener('resize', debounce(this.resize.bind(this), 400))
 
     this.startUpdate()
+    this.currentAnimation = this.getAnimation('travelCosmos')
     this.currentAnimation.init(AnimationStage.bounds)
   }
 
