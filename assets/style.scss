@@ -24,12 +24,19 @@ ul {
   position: absolute;
   top: 0;
   left: 0;
+  border-top: 4px solid #fffa;
   border-bottom: 4px solid #fff0;
   opacity: 1;
-  transition: opacity 3s, top 300ms, left 300ms, border-bottom 2s;
+  transition: opacity 4s, top 400ms, left 400ms, border-bottom 2.5s,
+    border-top 0.4s;
+  transition-timing-function: ease-out;
+
+  &:hover {
+    border-top: 4px solid #ffff;
+  }
 
   .active {
-    transition: color 300ms;
+    transition: color 400ms;
     color: #ffff;
   }
 }
@@ -40,6 +47,12 @@ ul {
   left: calc(-2rem - 4vw);
   border-bottom: 4px solid #ffff;
   opacity: 0;
+  transition: opacity 4s, top 400ms, left 400ms, border-bottom 2.5s;
+
+  &:hover {
+    opacity: 1;
+    transition: opacity 0.4s, top 400ms, left 400ms, border-bottom 2.5s;
+  }
 }
 
 .menu {

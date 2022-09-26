@@ -3,7 +3,7 @@ import XorCircles from './animations/XorCircles'
 import * as PIXI from 'pixi.js'
 import '../assets/style.scss'
 import { debounce } from './utils'
-import { AnimationSelect, Bounds } from './types'
+import { Bounds } from './types'
 
 export class AnimationStage {
   static renderer: PIXI.AbstractRenderer
@@ -19,23 +19,16 @@ export class AnimationStage {
     return this.stage
   }
 
-  /**
-   * testjpf
-   *
-   * track list of animations (startfunctions per animation?!?!?)
-   * track current animation (with default)
-   */
   domElement: HTMLElement
   renderer: PIXI.AbstractRenderer
-  currentAnimation: TravelCosmos
-  animations: AnimationSelect
+  currentAnimation: XorCircles | TravelCosmos
+  animations = {
+    travelCosmos: new TravelCosmos(),
+    xorCircles: new XorCircles(),
+  }
 
   constructor(domElementSelector: string) {
     this.domElement = document.getElementById(domElementSelector)
-    this.animations = {
-      travelCosmos: new TravelCosmos(),
-      xorCircles: new XorCircles(),
-    }
 
     AnimationStage.bounds = {
       left: 0,
@@ -119,7 +112,7 @@ export class AnimationStage {
     window.addEventListener('resize', debounce(this.resize.bind(this), 400))
 
     this.startUpdate()
-    this.currentAnimation = this.getAnimation('travelCosmos')
+    this.currentAnimation = this.getAnimation('xorCircles')
     this.currentAnimation.init(AnimationStage.bounds)
   }
 
@@ -145,7 +138,7 @@ export class AnimationStage {
       Math.abs(prevHeight - height) > 50
     ) {
       this.renderer.resize(width, height)
-      this.currentAnimation.reset()
+      this.currentAnimation.reset(true)
     }
   }
 }

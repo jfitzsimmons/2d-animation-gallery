@@ -86,14 +86,74 @@ class Circle {
   }
 }
 
+class Drape {
+  bounds: Bounds
+  sprite: PIXI.Sprite
+  startAngle = 0
+  swing = rndmRng(0.05, 0.005)
+  sway = rndmRng(20, 0)
+  startX: number
+  flipSwing = Math.random() < 0.5 ? 1 : -1
+  flipSway = Math.random() < 0.5 ? 1 : -1
+
+  constructor(bounds: Bounds, x: number, sprite: PIXI.Sprite) {
+    this.bounds = bounds
+    this.sprite = sprite
+    this.startX = x
+    this.sprite.x = x
+    this.sprite.y = -30
+    this.sprite.height = rndmRng(
+      this.bounds.bottom * 1.2,
+      this.bounds.bottom * 1.1
+    )
+    this.sprite.anchor.set(0.5, rndmRng(0.3, 0.1))
+
+    return this
+  }
+
+  update() {
+    if (this.sprite.rotation > this.startAngle + this.swing) {
+      this.flipSwing = -1
+    }
+
+    if (this.sprite.rotation <= this.startAngle - this.swing) {
+      this.flipSwing = 1
+    }
+
+    this.sprite.rotation += (this.swing * this.flipSwing) / rndmRng(800, 200)
+
+    if (this.sprite.x > this.startX + this.sway) {
+      this.flipSway = -1
+    }
+
+    if (this.sprite.x <= this.startX - this.sway) {
+      this.flipSway = 1
+    }
+
+    this.sprite.x += (this.sway * this.flipSway) / rndmRng(500, 40)
+  }
+}
+
+export interface Locusts {
+  d58?: PIXI.Sprite
+  d74?: PIXI.Sprite
+  d106?: PIXI.Sprite
+}
 export default class XorCircles {
   circles: Circle[]
+  drapes: Drape[]
   timeouts: ReturnType<typeof setTimeout>[]
   static strokeColors = ['506EE5', '68B2F8', '7037CD']
   static fillColors = [209, 291, 263]
+  static sprites: PIXI.Sprite[]
   constructor() {
     this.circles = []
     this.timeouts = []
+    this.drapes = []
+  }
+
+  static getSprite(index: number) {
+    return this.sprites[index]
   }
 
   static getStrokeColors() {
@@ -105,11 +165,36 @@ export default class XorCircles {
     return this.fillColors[Math.floor(Math.random() * this.fillColors.length)]
   }
 
+  createDrapes() {
+    const loader = new PIXI.Loader()
+    loader
+      .add('d58', '../assets/images/xorCircles/58.png')
+      .add('d74', '../assets/images/xorCircles/74.png')
+      .add('d106', '../assets/images/xorCircles/106.png')
+    loader.load((loader, resources) => {
+      const tiles = Object.keys(resources)
+      tiles.forEach((t) => {
+        console.log(`t: ${t}`)
+        for (let start = 0; start < AnimationStage.bounds.right; start++) {
+          const sprite = new PIXI.Sprite(resources[t].texture)
+          const drape = new Drape(AnimationStage.bounds, start, sprite)
+
+          this.drapes.push(drape)
+          AnimationStage.stage.addChild(drape.sprite)
+          console.log(`drape.sprite.width: ${drape.sprite.width}`)
+          start += drape.sprite.width
+        }
+      })
+    })
+  }
+
   newInstance() {
     return new XorCircles()
   }
 
   init(bounds: Bounds) {
+    this.createDrapes()
+
     const circleAmount = Math.round((bounds.right * bounds.bottom) / 47000)
     for (let i = circleAmount; i--; ) {
       this.timeouts.push(
@@ -126,6 +211,12 @@ export default class XorCircles {
       for (let i = this.circles.length; i--; ) {
         const child = this.circles[i].update()
         if (child) AnimationStage.stage.addChild(child)
+      }
+    }
+
+    if (this.drapes.length > 0) {
+      for (let i = this.drapes.length; i--; ) {
+        this.drapes[i].update()
       }
     }
   }
