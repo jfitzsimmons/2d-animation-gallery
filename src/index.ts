@@ -22,6 +22,7 @@ export class AnimationStage {
   domElement: HTMLElement
   renderer: PIXI.AbstractRenderer
   currentAnimation: XorCircles | TravelCosmos
+  defaultAnimation: keyof typeof this.animations
   animations = {
     travelCosmos: new TravelCosmos(),
     xorCircles: new XorCircles(),
@@ -29,6 +30,7 @@ export class AnimationStage {
 
   constructor(domElementSelector: string) {
     this.domElement = document.getElementById(domElementSelector)
+    this.defaultAnimation = 'travelCosmos'
 
     AnimationStage.bounds = {
       left: 0,
@@ -112,7 +114,7 @@ export class AnimationStage {
     window.addEventListener('resize', debounce(this.resize.bind(this), 400))
 
     this.startUpdate()
-    this.currentAnimation = this.getAnimation('xorCircles')
+    this.currentAnimation = this.getAnimation(this.defaultAnimation)
     this.currentAnimation.init(AnimationStage.bounds)
   }
 

@@ -10,5 +10,7 @@
 !.*
 .*/
 .eslintcache
-webpack.config.js
+webpack.*.js
 tsconfig.json
+
+.env*

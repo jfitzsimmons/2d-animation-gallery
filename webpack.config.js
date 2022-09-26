@@ -3,8 +3,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ESLintPlugin = require('eslint-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
-module.exports = {
+module.exports = (env) => ({
   mode: 'production',
   entry: './src/index.ts',
   output: {
@@ -12,6 +13,7 @@ module.exports = {
     filename: '[name].[contenthash].js',
   },
   plugins: [
+    new Dotenv({ path: `./.env.${env.mode}` }),
     new HtmlWebpackPlugin({
       hash: true,
       template: './src/index.html',
@@ -71,4 +73,4 @@ module.exports = {
       },
     ],
   },
-}
+})

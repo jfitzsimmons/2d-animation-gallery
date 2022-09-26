@@ -168,9 +168,9 @@ export default class XorCircles {
   createDrapes() {
     const loader = new PIXI.Loader()
     loader
-      .add('d58', '../assets/images/xorCircles/58.png')
-      .add('d74', '../assets/images/xorCircles/74.png')
-      .add('d106', '../assets/images/xorCircles/106.png')
+      .add('d58', `${process.env.ASSET_PATH}assets/images/xorCircles/58.png`)
+      .add('d74', `${process.env.ASSET_PATH}assets/images/xorCircles/74.png`)
+      .add('d106', `${process.env.ASSET_PATH}assets/images/xorCircles/106.png`)
     loader.load((loader, resources) => {
       const tiles = Object.keys(resources)
       tiles.forEach((t) => {
