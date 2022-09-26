@@ -380,7 +380,7 @@ class Burst extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
 
-    this.scaleLimit = 1.5
+    this.scaleLimit = 1.6
     this.scaleModRatio = 0.000001
     this.duration = this.getDuration(2.8)
   }
@@ -573,9 +573,9 @@ export default class TravelCosmos {
     }
   }
 
-  reset() {
+  reset(restart = true) {
     AnimationStage.stage.removeChildren()
     TravelCosmos.debris.length = 0
-    this.init(AnimationStage.bounds)
+    if (restart) this.init(AnimationStage.bounds)
   }
 }

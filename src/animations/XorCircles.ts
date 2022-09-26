@@ -65,7 +65,7 @@ class Circle {
           Math.round(rndmRng(25, 5)),
           parseInt(`0x${this.strokeColor}`)
         )
-      this.curr += rndmRng(8.8, 3.4)
+      this.curr += rndmRng(2.3, 0.7)
       if (this.curr == 100) this.graphics.cacheAsBitmap = true
     } else {
       if (
@@ -130,12 +130,12 @@ export default class XorCircles {
     }
   }
 
-  reset() {
+  reset(restart: boolean) {
     for (const to in this.timeouts) {
       window.clearTimeout(to)
     }
     AnimationStage.stage.removeChildren()
     this.circles.length = 0
-    this.init(AnimationStage.bounds)
+    if (restart) this.init(AnimationStage.bounds)
   }
 }

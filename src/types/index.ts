@@ -1,3 +1,6 @@
+import TravelCosmos from '../animations/TravelCosmos'
+import XorCircles from '../animations/XorCircles'
+
 export interface Bounds {
   top: number
   bottom: number
@@ -31,4 +34,9 @@ export interface SizeOptions {
   minMultiplier: number
   maxLimit: number
   minLimit: number
+}
+
+export interface AnimationSelect {
+  travelCosmos: TravelCosmos
+  xorCircles: XorCircles
 }
