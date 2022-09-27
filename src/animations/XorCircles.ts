@@ -17,19 +17,30 @@ class Circle {
   color: number
   light: number
   strokeColor: string
-  graphics: PIXI.Graphics
+  graphics: PIXI.Graphics | PIXI.Sprite
 
   constructor(bounds: Bounds) {
     this.bounds = bounds
-    this.cx = Math.round(rndmRng(this.bounds.right - 15, this.bounds.left + 15))
-    this.cy = Math.round(rndmRng(this.bounds.bottom - 15, this.bounds.top + 15))
+    this.innerCrcmf = rndmRng(105, 18)
+    this.cx = Math.round(
+      rndmRng(
+        this.bounds.right - 85 - this.innerCrcmf,
+        this.bounds.left + 85 + this.innerCrcmf
+      )
+    )
+    this.cy = Math.round(
+      rndmRng(
+        this.bounds.bottom - 85 - this.innerCrcmf,
+        this.bounds.top + 85 + this.innerCrcmf
+      )
+    )
     this.start = Math.random() * Math.PI * 2
     this.speedX = Math.cos(this.start) / rndmRng(5, 1)
     this.speedY = Math.sin(this.start) / rndmRng(5, 1)
     this.radius = 0
     this.curr = 0
-    this.innerCrcmf = rndmRng(130, 25)
-    this.grooves = rndmRng(35, 10)
+
+    this.grooves = rndmRng(20, 5)
     this.color = XorCircles.getFillColors()
     this.light = rndmRng(60, 10)
     this.strokeColor = XorCircles.getStrokeColors()
@@ -38,48 +49,54 @@ class Circle {
   }
   update() {
     if (this.radius < this.innerCrcmf && typeof this.radius !== 'undefined') {
-      this.radius += Math.round(this.innerCrcmf / this.grooves)
-      this.graphics.beginFill(
-        hslToHex(
-          Math.round((this.color += 0.3)),
-          Math.round(100 - rndmRng(50, 0)),
-          Math.round((this.light += 0.1))
+      if (this.graphics instanceof PIXI.Graphics) {
+        this.radius += Math.round(this.innerCrcmf / this.grooves)
+        this.graphics.beginFill(
+          hslToHex(
+            Math.round((this.color += 0.3)),
+            Math.round(100 - rndmRng(50, 0)),
+            Math.round((this.light += 0.1))
+          )
         )
-      )
 
-      this.graphics.drawCircle(this.cx, this.cy, this.radius)
-      return this.graphics
+        this.graphics.drawCircle(this.cx, this.cy, this.radius)
+        return this.graphics
+      }
     }
 
     if (this.curr < 101) {
-      this.graphics
-        .arc(
-          this.cx,
-          this.cy,
-          Math.round(this.innerCrcmf + rndmRng(45, 10)),
-          this.start,
-          (Math.PI * 2 * this.curr) / 100 + this.start,
-          false
-        )
-        .lineStyle(
-          Math.round(rndmRng(25, 5)),
-          parseInt(`0x${this.strokeColor}`)
-        )
-      this.curr += rndmRng(2.3, 0.7)
-      if (this.curr == 100) this.graphics.cacheAsBitmap = true
+      if (this.graphics instanceof PIXI.Graphics) {
+        this.graphics
+          .arc(
+            this.cx,
+            this.cy,
+            Math.round(this.innerCrcmf + rndmRng(67, 25)),
+            this.start,
+            (Math.PI * 2 * this.curr) / 100 + this.start,
+            false
+          )
+          .lineStyle(
+            Math.round(rndmRng(22, 5)),
+            parseInt(`0x${this.strokeColor}`)
+          )
+        this.curr += rndmRng(3.3, 1.7)
+      }
+      if (this.curr >= 101 && Math.random() < 0.5)
+        this.graphics.cacheAsBitmap = true
     } else {
       if (
-        this.graphics.x + this.cx + this.innerCrcmf > this.bounds.right ||
-        this.graphics.x + this.cx < this.bounds.left
+        this.graphics.x + this.cx + this.graphics.width / 2 >
+          this.bounds.right ||
+        this.graphics.x + this.cx - this.graphics.width / 2 < this.bounds.left
       ) {
         this.speedX *= -1
       } else if (
-        this.graphics.y + this.cy < this.bounds.top ||
-        this.graphics.y + this.cy + this.innerCrcmf > this.bounds.bottom
+        this.graphics.y + this.cy - this.graphics.height / 2 <
+          this.bounds.top ||
+        this.graphics.y + this.cy + this.graphics.width / 2 > this.bounds.bottom
       ) {
         this.speedY *= -1
       }
-
       this.graphics.x -= this.speedX
       this.graphics.y -= this.speedY
     }
@@ -101,12 +118,12 @@ class Drape {
     this.sprite = sprite
     this.startX = x
     this.sprite.x = x
-    this.sprite.y = -30
+    this.sprite.y = rndmRng(-20, -40)
     this.sprite.height = rndmRng(
-      this.bounds.bottom * 1.2,
-      this.bounds.bottom * 1.1
+      this.bounds.bottom * 1.8,
+      this.bounds.bottom * 1.5
     )
-    this.sprite.anchor.set(0.5, rndmRng(0.3, 0.1))
+    this.sprite.anchor.set(0.5, rndmRng(0.4, 0.1))
 
     return this
   }
@@ -140,17 +157,12 @@ export interface Locusts {
   d106?: PIXI.Sprite
 }
 export default class XorCircles {
-  circles: Circle[]
-  drapes: Drape[]
-  timeouts: ReturnType<typeof setTimeout>[]
+  static circles: Circle[] = []
+  drapes: Drape[] = []
+  timeouts: ReturnType<typeof setTimeout>[] = []
   static strokeColors = ['506EE5', '68B2F8', '7037CD']
   static fillColors = [209, 291, 263]
   static sprites: PIXI.Sprite[]
-  constructor() {
-    this.circles = []
-    this.timeouts = []
-    this.drapes = []
-  }
 
   static getSprite(index: number) {
     return this.sprites[index]
@@ -168,9 +180,18 @@ export default class XorCircles {
   createDrapes() {
     const loader = new PIXI.Loader()
     loader
-      .add('d58', `${process.env.ASSET_PATH}assets/images/xorCircles/58.png`)
-      .add('d74', `${process.env.ASSET_PATH}assets/images/xorCircles/74.png`)
-      .add('d106', `${process.env.ASSET_PATH}assets/images/xorCircles/106.png`)
+      .add(
+        'd58',
+        `${process.env.ASSET_PATH}assets/images/xorCircles/tile58.png`
+      )
+      .add(
+        'd74',
+        `${process.env.ASSET_PATH}assets/images/xorCircles/tile74.png`
+      )
+      .add(
+        'd106',
+        `${process.env.ASSET_PATH}assets/images/xorCircles/tile106.png`
+      )
     loader.load((loader, resources) => {
       const tiles = Object.keys(resources)
       tiles.forEach((t) => {
@@ -193,21 +214,21 @@ export default class XorCircles {
   init(bounds: Bounds) {
     this.createDrapes()
 
-    const circleAmount = Math.round((bounds.right * bounds.bottom) / 47000)
+    const circleAmount = Math.round((bounds.right * bounds.bottom) / 50000)
     for (let i = circleAmount; i--; ) {
       this.timeouts.push(
         setTimeout(() => {
           const circle = new Circle(bounds)
-          this.circles.push(circle)
+          XorCircles.circles.push(circle)
         }, i * rndmRng(2000, 900))
       )
     }
   }
 
   update() {
-    if (this.circles.length > 0) {
-      for (let i = this.circles.length; i--; ) {
-        const child = this.circles[i].update()
+    if (XorCircles.circles.length > 0) {
+      for (let i = XorCircles.circles.length; i--; ) {
+        const child = XorCircles.circles[i].update()
         if (child) AnimationStage.stage.addChild(child)
       }
     }
@@ -224,7 +245,7 @@ export default class XorCircles {
       window.clearTimeout(to)
     }
     AnimationStage.stage.removeChildren()
-    this.circles.length = 0
+    XorCircles.circles.length = 0
     if (restart) this.init(AnimationStage.bounds)
   }
 }
