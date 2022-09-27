@@ -52,6 +52,16 @@ ul {
   &:hover {
     opacity: 1;
     transition: opacity 0.4s, top 400ms, left 400ms, border-bottom 2.5s;
+
+    .arrow {
+      transition: transform 0.3s 0.3s;
+      transform: rotate(0deg);
+    }
+  }
+
+  .arrow {
+    transition: transform 1s 1s;
+    transform: rotate(180deg);
   }
 }
 
@@ -86,6 +96,15 @@ ul {
   &:hover {
     color: #ffff;
     transition: 0.3s;
+
+    .arrow {
+      transform: rotate(180deg);
+    }
+  }
+  .arrow {
+    transform: rotate(0deg);
+    display: inline-block;
+    transition: transform 0.3s 0.3s;
   }
 }
 
