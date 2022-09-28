@@ -259,12 +259,21 @@ export function convertToSprite(
   x: number,
   y: number,
   alpha: number,
-  texture: PIXI.Texture
+  graphics: PIXI.Graphics | PIXI.Sprite | PIXI.Texture
 ) {
-  const sprite = new PIXI.Sprite(texture)
-  sprite.alpha = alpha
-  sprite.anchor.set(0.5, 0.5)
-  sprite.position.set(x, y)
+  let sprite = graphics
+
+  if (sprite instanceof PIXI.Texture) {
+    sprite = new PIXI.Sprite(sprite)
+  } else {
+    sprite.cacheAsBitmap = true
+    sprite.alpha = alpha
+    if (sprite instanceof PIXI.Sprite) sprite.anchor.set(0.5, 0.5)
+    if (sprite instanceof PIXI.Graphics)
+      sprite.pivot.set(sprite.width / 2, sprite.height / 2)
+    sprite.position.set(x, y)
+  }
+
   return sprite
 }
 
