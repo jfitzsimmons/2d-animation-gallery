@@ -1,4 +1,4 @@
-import { AnimationStage, app } from '..'
+import { AnimationStage } from '..'
 import { Bounds, BoundsOptions, GradientOptions } from '../types'
 import {
   hslToHex,
