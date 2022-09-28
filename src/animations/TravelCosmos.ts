@@ -1,4 +1,4 @@
-import { AnimationStage, app } from '..'
+import { AnimationStage } from '..'
 import { Bounds, BoundsOptions, GradientOptions } from '../types'
 import {
   hslToHex,
@@ -33,7 +33,7 @@ class Debris {
   scaleModIncrease = 0.0001
   scaleLimit = 2
   //return
-  sprite: PIXI.Sprite
+  sprite: PIXI.Graphics | PIXI.Sprite
 
   constructor(bounds: Bounds) {
     this.bounds = bounds
@@ -101,27 +101,31 @@ class Debris {
     ) {
       TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
       AnimationStage.stage.removeChild(this.sprite)
-      const debris = this.newInstance()
+      this.sprite.destroy({ texture: true })
+
+      const debris = Object.create(this.newInstance())
       const child = debris.draw()
       TravelCosmos.debris.push(debris)
       if (child instanceof PIXI.Graphics || child instanceof PIXI.Sprite)
         AnimationStage.stage.addChild(child)
+    } else {
+      this.timeSlice += 1
+      this.sprite.scale.set(
+        (this.sprite.scale.x *=
+          1.001 + this.duration * 0.3 * this.scaleModRatio),
+        (this.sprite.scale.y *=
+          1.001 + this.duration * 0.3 * this.scaleModRatio)
+      )
+      this.sprite.position.set(
+        lerp(this.x, this.endPoint.x, this.timeSlice / this.duration),
+        lerp(this.y, this.endPoint.y, this.timeSlice / this.duration)
+      )
+      if (this.sprite.scale.x > this.scaleLimit) {
+        this.sprite.alpha =
+          this.scaleLimit + this.alphaStart - this.sprite.scale.x
+      }
+      this.duration *= 0.999
     }
-
-    this.timeSlice += 1
-    this.sprite.scale.set(
-      (this.sprite.scale.x *= 1.001 + this.duration * 0.3 * this.scaleModRatio),
-      (this.sprite.scale.y *= 1.001 + this.duration * 0.3 * this.scaleModRatio)
-    )
-    this.sprite.position.set(
-      lerp(this.x, this.endPoint.x, this.timeSlice / this.duration),
-      lerp(this.y, this.endPoint.y, this.timeSlice / this.duration)
-    )
-    if (this.sprite.scale.x > this.scaleLimit) {
-      this.sprite.alpha =
-        this.scaleLimit + this.alphaStart - this.sprite.scale.x
-    }
-    this.duration *= 0.999
   }
 
   draw() {
@@ -211,9 +215,8 @@ class Points extends Debris {
         circleShading(graphics, this.x, this.y, size, strokeColor)
     }
 
-    const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -258,9 +261,8 @@ class Circle extends Debris {
       size = size * rndmRng(1.6, 1.2)
     }
 
-    const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -320,9 +322,8 @@ class MainCircle extends Debris {
     graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
     drawDashLine(graphics, from.x, from.y, to.x, to.y, start, 16, 8)
 
-    const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -368,9 +369,8 @@ class CurvedLine extends Debris {
       splatterPoints(splatterCenter.x, splatterCenter.y, splatter, graphics)
     }
 
-    const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.01, 0.01)
 
     return this.sprite
@@ -426,8 +426,8 @@ class Burst extends Debris {
       graphics.lineTo(rndmRng(dotX - 1, dotX - 5), rndmRng(dotY - 1, dotY - 5))
     }
 
-    const texture = app.renderer.generateTexture(graphics)
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.1, 0.1)
 
     return this.sprite
@@ -453,9 +453,8 @@ class Speck extends Debris {
     graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
     graphics.lineTo(Math.round(rndmRng(5, 1)), Math.round(rndmRng(5, 1)))
 
-    const texture = app.renderer.generateTexture(graphics)
-
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    graphics.cacheAsBitmap = true
+    this.sprite = graphics
     this.sprite.scale.set(0.3, 0.3)
 
     return this.sprite
@@ -531,35 +530,35 @@ export default class TravelCosmos {
 
     for (let i = radialTotal; i--; ) {
       const radial = new Radial(bounds)
-      const child: PIXI.Sprite = radial.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = radial.draw()
       TravelCosmos.debris.push(radial)
       AnimationStage.stage.addChild(child)
     }
 
     for (let i = 2; i--; ) {
       const curvedLine = new CurvedLine(bounds)
-      const child: PIXI.Sprite = curvedLine.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = curvedLine.draw()
       TravelCosmos.debris.push(curvedLine)
       AnimationStage.stage.addChild(child)
     }
 
     for (let i = circleTotal; i--; ) {
       const circle = new Circle(bounds)
-      const child: PIXI.Sprite = circle.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = circle.draw()
       TravelCosmos.debris.push(circle)
       AnimationStage.stage.addChild(child)
     }
 
     for (let i = 3; i--; ) {
       const points = new Points(bounds)
-      const child: PIXI.Sprite = points.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = points.draw()
       TravelCosmos.debris.push(points)
       AnimationStage.stage.addChild(child)
     }
 
     for (let i = 2; i--; ) {
       const mainCircle = new MainCircle(bounds)
-      const child: PIXI.Sprite = mainCircle.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = mainCircle.draw()
       TravelCosmos.debris.push(mainCircle)
       AnimationStage.stage.addChild(child)
     }
