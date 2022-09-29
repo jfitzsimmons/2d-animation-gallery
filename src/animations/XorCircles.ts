@@ -177,6 +177,10 @@ export default class XorCircles {
     return this.fillColors[Math.floor(Math.random() * this.fillColors.length)]
   }
 
+  static newInstance() {
+    return new XorCircles()
+  }
+
   createDrapes() {
     const loader = new PIXI.Loader()
     loader
@@ -205,10 +209,6 @@ export default class XorCircles {
         }
       })
     })
-  }
-
-  newInstance() {
-    return new XorCircles()
   }
 
   init(bounds: Bounds) {

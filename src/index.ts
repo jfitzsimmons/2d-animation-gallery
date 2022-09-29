@@ -5,6 +5,20 @@ import '../assets/style.scss'
 import { debounce } from './utils'
 import { Bounds } from './types'
 
+/***
+ *
+ *
+ * testjpf
+ *
+ * memory leaks when click ui link
+ * (reloading animation.  kill whole stage. loop through existing textures??
+ * etc...)
+ *
+ *
+ * ??? make animation stage have a n animationNAme argument.  Pass it, getAnimation in .ready or constructor???!?!?!
+ * TESTJPF
+ */
+
 export class AnimationStage {
   static renderer: PIXI.AbstractRenderer
   static getRenderer() {
@@ -24,8 +38,8 @@ export class AnimationStage {
   currentAnimation: XorCircles | TravelCosmos
   defaultAnimation: keyof typeof this.animations
   animations = {
-    travelCosmos: new TravelCosmos(),
-    xorCircles: new XorCircles(),
+    travelCosmos: TravelCosmos.newInstance(),
+    xorCircles: XorCircles.newInstance(),
   }
 
   constructor(domElementSelector: string) {
@@ -48,6 +62,7 @@ export class AnimationStage {
   }
 
   getAnimation(prop: keyof typeof this.animations) {
+    //testjpf reset animation for link clicking meory bug ?!?!?!
     type AnimationKey = keyof typeof this.animations
     const animationKey: AnimationKey = prop
     const oldActives = document.getElementsByClassName('active')
@@ -58,7 +73,8 @@ export class AnimationStage {
   }
 
   switchAnimation(prop: keyof typeof this.animations) {
-    this.currentAnimation.reset(false)
+    const _curr = this.currentAnimation
+    _curr.reset(false)
     this.currentAnimation = this.getAnimation(prop)
     this.currentAnimation.init(AnimationStage.bounds)
   }

@@ -12,11 +12,14 @@ import {
   createArc,
   circleShading,
   drawDashLine,
-  convertToSprite,
+  //convertToSprite,
   createHalfArc,
   findNewPoint,
 } from '../utils'
 import * as PIXI from 'pixi.js'
+
+// could keep a list (array?) of textures that changes every so often
+//TESTJPF
 
 class Debris {
   //positioning
@@ -33,6 +36,7 @@ class Debris {
   scaleModIncrease = 0.0001
   scaleLimit = 2
   //return
+  texture: PIXI.Texture
   sprite: PIXI.Graphics | PIXI.Sprite
 
   constructor(bounds: Bounds) {
@@ -70,6 +74,25 @@ class Debris {
       (Math.abs(fromCenterX) + Math.abs(fromCenterY)) / (center.x + center.y)
   }
 
+  convertToSprite(
+    x: number,
+    y: number,
+    alpha: number,
+    graphics: PIXI.Graphics | PIXI.Texture
+  ) {
+    if (graphics instanceof PIXI.Texture) {
+      this.sprite = PIXI.Sprite.from(graphics)
+    } else {
+      this.texture = AnimationStage.renderer.generateTexture(graphics)
+      this.sprite = PIXI.Sprite.from(this.texture)
+      //sprite.cacheAsBitmap = true
+    }
+
+    this.sprite.alpha = alpha
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.position.set(x, y)
+  }
+
   getDuration(mod: number) {
     const center = { x: this.bounds.right / 2, y: this.bounds.bottom / 2 }
     const maxDistance =
@@ -99,12 +122,14 @@ class Debris {
       this.sprite.scale.x > this.scaleLimit + 1 ||
       this.sprite.scale.y > this.scaleLimit + 1
     ) {
+      // this.texture.destroy()
+
       TravelCosmos.debris.splice(TravelCosmos.debris.indexOf(this), 1)
       AnimationStage.stage.removeChild(this.sprite)
-      this.sprite.destroy({ texture: true })
+      this.sprite.destroy({ texture: true, baseTexture: true, children: true })
 
-      const debris = Object.create(this.newInstance())
-      const child = debris.draw()
+      const debris = Object.create(new Circle(TravelCosmos.bounds))
+      const child = debris.getSprite()
       TravelCosmos.debris.push(debris)
       if (child instanceof PIXI.Graphics || child instanceof PIXI.Sprite)
         AnimationStage.stage.addChild(child)
@@ -215,8 +240,12 @@ class Points extends Debris {
         circleShading(graphics, this.x, this.y, size, strokeColor)
     }
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
+    //add generate texure here and push it to a TravelCosmos array (map may be better) ???
+    //make this.texture TravelComos.textures[(whatever you just pushed???)]
+    //^^^ probably better if each subclass has it's own texture array!!!!
+    //testjpf
+
+    this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -224,6 +253,7 @@ class Points extends Debris {
 }
 
 class Circle extends Debris {
+  static textures: PIXI.Texture[] = []
   constructor(bounds: Bounds) {
     super(bounds)
     this.duration = this.getDuration(3.2)
@@ -261,10 +291,30 @@ class Circle extends Debris {
       size = size * rndmRng(1.6, 1.2)
     }
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
-    this.sprite.scale.set(0.02, 0.02)
+    //this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
 
+    this.texture = AnimationStage.renderer.generateTexture(graphics)
+    Circle.textures.push(this.texture)
+
+    return this.texture
+  }
+
+  getSprite() {
+    console.log(
+      `Circle.textures.length: ${Circle.textures.length} | TravelCosmos.debris.length: ${TravelCosmos.debris.length}`
+    )
+    if (Circle.textures.length < 12) {
+      Circle.textures.splice(Circle.textures.indexOf(this.texture), 1)
+      if (this.texture) this.texture.destroy()
+      this.sprite = PIXI.Sprite.from(this.draw())
+    } else {
+      this.sprite = PIXI.Sprite.from(this.texture)
+    }
+
+    this.sprite.alpha = this.alphaStart
+    this.sprite.anchor.set(0.5, 0.5)
+    this.sprite.position.set(this.x, this.y)
+    this.sprite.scale.set(0.02, 0.02)
     return this.sprite
   }
 }
@@ -322,8 +372,8 @@ class MainCircle extends Debris {
     graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
     drawDashLine(graphics, from.x, from.y, to.x, to.y, start, 16, 8)
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
+    this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
+
     this.sprite.scale.set(0.02, 0.02)
 
     return this.sprite
@@ -369,8 +419,7 @@ class CurvedLine extends Debris {
       splatterPoints(splatterCenter.x, splatterCenter.y, splatter, graphics)
     }
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
+    this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
     this.sprite.scale.set(0.01, 0.01)
 
     return this.sprite
@@ -426,8 +475,8 @@ class Burst extends Debris {
       graphics.lineTo(rndmRng(dotX - 1, dotX - 5), rndmRng(dotY - 1, dotY - 5))
     }
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
+    this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
+
     this.sprite.scale.set(0.1, 0.1)
 
     return this.sprite
@@ -453,8 +502,9 @@ class Speck extends Debris {
     graphics.lineStyle(Math.round(rndmRng(5, 1)), strokeColor, rndmRng(1, 0.5))
     graphics.lineTo(Math.round(rndmRng(5, 1)), Math.round(rndmRng(5, 1)))
 
-    graphics.cacheAsBitmap = true
-    this.sprite = graphics
+    // graphics.cacheAsBitmap = true
+    this.convertToSprite(this.x, this.y, this.alphaStart, graphics)
+
     this.sprite.scale.set(0.3, 0.3)
 
     return this.sprite
@@ -485,9 +535,10 @@ class Radial extends Debris {
       )}, ${rndmRng(0.5, 0.2)})`,
       to: `rgba(${rndmRng(80, 54)}, ${rndmRng(40, 10)}, ${rndmRng(43, 17)}, 0)`,
     }
-    const texture = createRadialTexture(gradientOptions)
+    this.texture = createRadialTexture(gradientOptions)
 
-    this.sprite = convertToSprite(this.x, this.y, this.alphaStart, texture)
+    this.convertToSprite(this.x, this.y, this.alphaStart, this.texture)
+
     this.sprite.scale.set(0.06, 0.06)
 
     return this.sprite
@@ -503,8 +554,9 @@ export default class TravelCosmos {
     [340, 89],
     [179, 79],
   ]
+  static bounds: Bounds
 
-  newInstance() {
+  static newInstance() {
     return new TravelCosmos()
   }
 
@@ -513,7 +565,7 @@ export default class TravelCosmos {
     const speckTotal = Math.round((bounds.right * bounds.bottom) / 37000)
     const radialTotal = Math.round(rndmRng(8, 5))
     const circleTotal = burstTotal <= 1 ? 2 : Math.round(rndmRng(burstTotal, 2))
-
+    /** 
     for (let i = speckTotal; i--; ) {
       const speck = new Speck(bounds)
       const child = speck.draw()
@@ -541,14 +593,14 @@ export default class TravelCosmos {
       TravelCosmos.debris.push(curvedLine)
       AnimationStage.stage.addChild(child)
     }
-
+*/
     for (let i = circleTotal; i--; ) {
       const circle = new Circle(bounds)
-      const child: PIXI.Sprite | PIXI.Graphics = circle.draw()
+      const child: PIXI.Sprite | PIXI.Graphics = circle.getSprite()
       TravelCosmos.debris.push(circle)
       AnimationStage.stage.addChild(child)
     }
-
+    /** 
     for (let i = 3; i--; ) {
       const points = new Points(bounds)
       const child: PIXI.Sprite | PIXI.Graphics = points.draw()
@@ -562,6 +614,7 @@ export default class TravelCosmos {
       TravelCosmos.debris.push(mainCircle)
       AnimationStage.stage.addChild(child)
     }
+    */
   }
 
   update() {

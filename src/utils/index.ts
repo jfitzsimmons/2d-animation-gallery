@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js'
+
+import { app } from '..'
 import { GradientOptions, SizeOptions } from '../types'
 
 export function hslToHex(h: number, s: number, l: number) {
@@ -254,29 +256,30 @@ export function circleShading(
     startAngle += i / rndmRng(70, 40)
   }
 }
-
+/** 
 export function convertToSprite(
   x: number,
   y: number,
   alpha: number,
-  graphics: PIXI.Graphics | PIXI.Sprite | PIXI.Texture
+  graphics: PIXI.Graphics | PIXI.Texture
 ) {
-  let sprite = graphics
+  let sprite = null
 
-  if (sprite instanceof PIXI.Texture) {
-    sprite = new PIXI.Sprite(sprite)
+  if (graphics instanceof PIXI.Texture) {
+    sprite = PIXI.Sprite.from(graphics)
   } else {
-    sprite.cacheAsBitmap = true
-    sprite.alpha = alpha
-    if (sprite instanceof PIXI.Sprite) sprite.anchor.set(0.5, 0.5)
-    if (sprite instanceof PIXI.Graphics)
-      sprite.pivot.set(sprite.width / 2, sprite.height / 2)
-    sprite.position.set(x, y)
+    const texture = app.renderer.generateTexture(graphics)
+    sprite = PIXI.Sprite.from(texture)
+    //sprite.cacheAsBitmap = true
   }
+
+  sprite.alpha = alpha
+  sprite.anchor.set(0.5, 0.5)
+  sprite.position.set(x, y)
 
   return sprite
 }
-
+*/
 export function findNewPoint(
   x: number,
   y: number,
