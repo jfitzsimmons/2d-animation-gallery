@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import { app } from '..'
 import { GradientOptions, SizeOptions } from '../types'
 
 export function hslToHex(h: number, s: number, l: number) {
@@ -130,8 +131,8 @@ export const splatterPoints = (
     strokeColor = hslToHex(204, 100, 48 + Math.round(rndmRng(51, 0)))
 
     graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.1))
-    newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
-    newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
+    newX = Math.round(rndmRng(20 * m + ox, 10 * m + ox))
+    newY = Math.round(rndmRng(-10 * m + oy, -20 * m + oy))
     graphics.moveTo(newX, newY)
     graphics.lineTo(
       newX + Math.round(rndmRng(5, 1)),
@@ -140,8 +141,8 @@ export const splatterPoints = (
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(260, 31, 70 + Math.round(rndmRng(29, 0)))
     graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
-    newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
-    newY = Math.round(rndmRng(-5 * m + oy, -10 * m + oy))
+    newX = Math.round(rndmRng(-10 * m + ox, -20 * m + ox))
+    newY = Math.round(rndmRng(-10 * m + oy, -20 * m + oy))
     graphics.moveTo(newX, newY)
     graphics.lineTo(
       newX + Math.round(rndmRng(5, 1)),
@@ -150,8 +151,8 @@ export const splatterPoints = (
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(340, 89, 74 + Math.round(rndmRng(25, 0)))
     graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
-    newX = Math.round(rndmRng(-5 * m + ox, -10 * m + ox))
-    newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
+    newX = Math.round(rndmRng(-10 * m + ox, -20 * m + ox))
+    newY = Math.round(rndmRng(20 * m + oy, 10 * m + oy))
     graphics.moveTo(newX, newY)
 
     graphics.lineTo(
@@ -161,8 +162,8 @@ export const splatterPoints = (
     graphics.moveTo(ox, oy)
     strokeColor = hslToHex(179, 79, 74 + Math.round(rndmRng(25, 0)))
     graphics.lineStyle(Math.round(rndmRng(9, 5)), strokeColor, rndmRng(1, 0.5))
-    newX = Math.round(rndmRng(10 * m + ox, 5 * m + ox))
-    newY = Math.round(rndmRng(10 * m + oy, 5 * m + oy))
+    newX = Math.round(rndmRng(20 * m + ox, 10 * m + ox))
+    newY = Math.round(rndmRng(20 * m + oy, 10 * m + oy))
     graphics.moveTo(newX, newY)
     graphics.lineTo(
       newX + Math.round(rndmRng(5, 1)),
@@ -264,13 +265,11 @@ export function convertToSprite(
   let sprite = graphics
 
   if (sprite instanceof PIXI.Texture) {
-    sprite = new PIXI.Sprite(sprite)
+    sprite = PIXI.Sprite.from(sprite)
   } else {
-    sprite.cacheAsBitmap = true
+    sprite = PIXI.Sprite.from(app.renderer.generateTexture(sprite))
     sprite.alpha = alpha
-    if (sprite instanceof PIXI.Sprite) sprite.anchor.set(0.5, 0.5)
-    if (sprite instanceof PIXI.Graphics)
-      sprite.pivot.set(sprite.width / 2, sprite.height / 2)
+    sprite.anchor.set(0.5, 0.5)
     sprite.position.set(x, y)
   }
 
