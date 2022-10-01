@@ -226,6 +226,7 @@ class Points extends Debris {
     }
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 
@@ -272,6 +273,7 @@ class Circle extends Debris {
     }
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 
@@ -333,6 +335,7 @@ class MainCircle extends Debris {
     drawDashLine(graphics, from.x, from.y, to.x, to.y, start, 16, 8)
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 class CurvedLine extends Debris {
@@ -380,6 +383,7 @@ class CurvedLine extends Debris {
     }
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 class Burst extends Debris {
@@ -437,6 +441,7 @@ class Burst extends Debris {
     }
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 
@@ -464,6 +469,7 @@ class Speck extends Debris {
     graphics.lineTo(Math.round(rndmRng(7, 3)), Math.round(rndmRng(7, 3)))
 
     this.textures.push(AnimationStage.renderer.generateTexture(graphics))
+    graphics.destroy()
   }
 }
 

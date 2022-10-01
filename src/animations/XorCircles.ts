@@ -112,23 +112,28 @@ class Drape {
   startX: number
   flipSwing = Math.random() < 0.5 ? 1 : -1
   flipSway = Math.random() < 0.5 ? 1 : -1
+  droppedY = rndmRng(-20, -40)
 
   constructor(bounds: Bounds, x: number, sprite: PIXI.Sprite) {
     this.bounds = bounds
     this.sprite = sprite
-    this.startX = x
-    this.sprite.x = x
-    this.sprite.y = rndmRng(-20, -40)
     this.sprite.height = rndmRng(
       this.bounds.bottom * 1.8,
       this.bounds.bottom * 1.5
     )
+    this.startX = x
+    this.sprite.x = x
+    this.sprite.y = this.droppedY - this.sprite.height
     this.sprite.anchor.set(0.5, rndmRng(0.4, 0.1))
+    this.sprite.cacheAsBitmap = true
 
     return this
   }
 
   update() {
+    if (this.sprite.y < this.droppedY) {
+      this.sprite.y += 3
+    }
     if (this.sprite.rotation > this.startAngle + this.swing) {
       this.flipSwing = -1
     }
@@ -199,8 +204,13 @@ export default class XorCircles {
           const sprite = new PIXI.Sprite(resources[t].texture)
           const drape = new Drape(AnimationStage.bounds, start, sprite)
 
-          this.drapes.push(drape)
-          AnimationStage.stage.addChild(drape.sprite)
+          this.timeouts.push(
+            setTimeout(() => {
+              this.drapes.push(drape)
+              AnimationStage.stage.addChild(drape.sprite)
+            }, Math.round(start * rndmRng(40, 2)))
+          )
+
           start += drape.sprite.width
         }
       })
@@ -215,6 +225,7 @@ export default class XorCircles {
     this.createDrapes()
 
     const circleAmount = Math.round((bounds.right * bounds.bottom) / 50000)
+
     for (let i = circleAmount; i--; ) {
       this.timeouts.push(
         setTimeout(() => {
