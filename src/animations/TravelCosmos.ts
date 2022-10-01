@@ -235,9 +235,9 @@ class Circle extends Debris {
 
   constructor(bounds: Bounds) {
     super(bounds)
-    this.duration = this.getDuration(3.2)
+    this.duration = this.getDuration(2.6)
     this.scaleLimit = 1
-    this.scaleModRatio = 0.0000014
+    this.scaleModRatio = 0.000001
   }
 
   setSprite() {
@@ -304,10 +304,10 @@ class MainCircle extends Debris {
     const start = rndmRng(Math.PI, 0)
     const sizeOptions = {
       bounds: this.bounds,
-      maxMultiplier: 0.12,
-      minMultiplier: 0.03,
-      maxLimit: 410,
-      minLimit: 120,
+      maxMultiplier: 0.13,
+      minMultiplier: 0.04,
+      maxLimit: 440,
+      minLimit: 130,
     }
     let size = getSize(sizeOptions)
 
@@ -328,8 +328,8 @@ class MainCircle extends Debris {
       size = Math.round(size * rndmRng(1.7, 1.3))
     }
 
-    const from = findNewPoint(this.x, this.y, start, -edge * 0.6)
-    const to = findNewPoint(from.x, from.y, start, edge * 1.2)
+    const from = findNewPoint(this.x, this.y, start, -edge * 0.9)
+    const to = findNewPoint(from.x, from.y, start, edge * 1.8)
 
     graphics.lineStyle(Math.round(rndmRng(7, 3)), strokeColor, rndmRng(1, 0.5))
     drawDashLine(graphics, from.x, from.y, to.x, to.y, start, 16, 8)
@@ -605,6 +605,7 @@ export default class TravelCosmos {
   reset(restart = true) {
     AnimationStage.stage.removeChildren()
     TravelCosmos.debris.length = 0
+    AnimationStage.newContainer()
     if (restart) this.init(AnimationStage.bounds)
   }
 }

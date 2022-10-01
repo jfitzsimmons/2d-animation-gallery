@@ -47,6 +47,7 @@ class Circle {
     this.graphics = new PIXI.Graphics()
     this.graphics.blendMode = PIXI.BLEND_MODES.XOR
   }
+
   update() {
     if (this.radius < this.innerCrcmf && typeof this.radius !== 'undefined') {
       if (this.graphics instanceof PIXI.Graphics) {
@@ -155,12 +156,6 @@ class Drape {
     this.sprite.x += (this.sway * this.flipSway) / rndmRng(500, 40)
   }
 }
-
-export interface Locusts {
-  d58?: PIXI.Sprite
-  d74?: PIXI.Sprite
-  d106?: PIXI.Sprite
-}
 export default class XorCircles {
   static circles: Circle[] = []
   drapes: Drape[] = []
@@ -217,10 +212,6 @@ export default class XorCircles {
     })
   }
 
-  newInstance() {
-    return new XorCircles()
-  }
-
   init(bounds: Bounds) {
     this.createDrapes()
 
@@ -257,6 +248,7 @@ export default class XorCircles {
     }
     AnimationStage.stage.removeChildren()
     XorCircles.circles.length = 0
+    AnimationStage.newContainer()
     if (restart) this.init(AnimationStage.bounds)
   }
 }

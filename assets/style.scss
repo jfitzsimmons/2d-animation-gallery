@@ -38,6 +38,10 @@ ul {
   .active {
     transition: color 400ms;
     color: #ffff;
+
+    &::before {
+      content: '\2726';
+    }
   }
 }
 
@@ -83,6 +87,11 @@ ul {
     text-decoration: underline;
     color: #ffff;
     transition: 0.3s;
+  }
+  &::before {
+    font-size: calc(1rem + 1vw);
+    content: '\2727';
+    margin-right: 4px;
   }
 }
 

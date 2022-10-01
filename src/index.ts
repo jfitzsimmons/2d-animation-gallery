@@ -63,6 +63,17 @@ export class AnimationStage {
     this.currentAnimation.init(AnimationStage.bounds)
   }
 
+  static newContainer() {
+    if (AnimationStage.stage)
+      AnimationStage.stage.destroy({
+        children: true,
+        texture: true,
+        baseTexture: true,
+      })
+    AnimationStage.stage = new PIXI.Container()
+    AnimationStage.stage.interactiveChildren = false
+  }
+
   ready() {
     if (typeof PIXI === 'undefined') {
       this.domElement.classList.add('error')
@@ -93,8 +104,7 @@ export class AnimationStage {
       return
     }
 
-    AnimationStage.stage = new PIXI.Container()
-    AnimationStage.stage.interactiveChildren = false
+    AnimationStage.newContainer()
 
     let key: keyof typeof this.animations
     for (key in this.animations) {
