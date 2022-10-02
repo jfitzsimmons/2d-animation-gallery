@@ -24,6 +24,7 @@ class Debris {
   x = 0
   y = 0
   endPoint: { x: number; y: number }
+  rotateSpeed = Math.random() < 0.5 ? rndmRng(0.002, -0.002) : 0
   //tweening
   timeSlice = 1
   duration: number
@@ -129,6 +130,7 @@ class Debris {
         this.scaleLimit + this.alphaStart - this.sprite.scale.x
     }
     this.duration *= 0.999
+    this.sprite.rotation += this.rotateSpeed
   }
 
   getTexture() {
@@ -160,12 +162,14 @@ class Points extends Debris {
 
     this.scaleLimit = 0.3
     this.scaleModRatio = 0.0000007
+    this.rotateSpeed = Math.random() < 0.7 ? rndmRng(0.003, -0.003) : 0
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.01, 0.01)
+    this.sprite.scale.set(0.008, 0.008)
   }
 
   draw() {
@@ -191,12 +195,8 @@ class Points extends Debris {
 
       const x1 = Math.round(0 + size * Math.cos((2 * Math.PI * i) / lines))
       const y1 = Math.round(0 + size * Math.sin((2 * Math.PI * i) / lines))
-      const x2 = Math.round(
-        0 + edge * 0.9 * Math.cos((2 * Math.PI * i) / lines)
-      )
-      const y2 = Math.round(
-        0 + edge * 0.9 * Math.sin((2 * Math.PI * i) / lines)
-      )
+      const x2 = Math.round(0 + edge * Math.cos((2 * Math.PI * i) / lines))
+      const y2 = Math.round(0 + edge * Math.sin((2 * Math.PI * i) / lines))
       const dash = rndmRng(16, 8)
       const gap = rndmRng(16, 8)
 
@@ -213,7 +213,7 @@ class Points extends Debris {
     }
 
     for (let c = 1; c <= rings; c++) {
-      size = Math.round(size * rndmRng(2.1, 1.7))
+      size = Math.round(size * rndmRng(2, 1.8))
       const strokeColor = this.getStrokeColor(TravelCosmos.hueSat)
 
       graphics.lineStyle(
@@ -236,11 +236,12 @@ class Circle extends Debris {
   constructor(bounds: Bounds) {
     super(bounds)
     this.duration = this.getDuration(2.6)
-    this.scaleLimit = 1
+    this.scaleLimit = 1.1
     this.scaleModRatio = 0.000001
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.scale.set(0.02, 0.02)
@@ -288,9 +289,10 @@ class MainCircle extends Debris {
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.03, 0.03)
+    this.sprite.scale.set(0.01, 0.01)
   }
 
   draw() {
@@ -346,12 +348,14 @@ class CurvedLine extends Debris {
     this.duration = this.getDuration(3.5)
     this.scaleLimit = 1.1
     this.scaleModRatio = 0.0000011
+    this.rotateSpeed = Math.random() < 0.4 ? rndmRng(0.0008, -0.0008) : 0
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.03, 0.03)
+    this.sprite.scale.set(0.01, 0.01)
   }
 
   draw() {
@@ -395,12 +399,14 @@ class Burst extends Debris {
     this.scaleLimit = 1.6
     this.scaleModRatio = 0.000001
     this.duration = this.getDuration(2.8)
+    this.rotateSpeed = Math.random() < 0.4 ? rndmRng(0.001, -0.001) : 0
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
-    this.sprite.scale.set(0.09, 0.09)
+    this.sprite.scale.set(0.08, 0.08)
   }
 
   draw() {
@@ -453,9 +459,11 @@ class Speck extends Debris {
 
     this.scaleLimit = 1.5
     this.alphaStart = 1
+    this.rotateSpeed = Math.random() < 0.5 ? rndmRng(0.008, -0.008) : 0
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.scale.set(0.09, 0.09)
@@ -481,9 +489,11 @@ class Radial extends Debris {
 
     this.scaleLimit = 5
     this.alphaStart = 1
+    this.rotateSpeed = 0
   }
 
   setSprite() {
+    this.sprite.rotation = rndmRng(Math.PI * 2, 0)
     this.sprite.alpha = this.alphaStart
     this.sprite.position.set(this.x, this.y)
     this.sprite.scale.set(0.05, 0.05)
